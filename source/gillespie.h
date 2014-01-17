@@ -19,14 +19,14 @@
 #include<sys/stat.h>
 #include<unistd.h>
 
-#include"timeDerivative.h"
+#include"BCNetwork.h"
 #include"basicDef.h"
 //#include "dSFMT.h"
 
 
 using namespace std;
 
-class gillespie: public timeDerivative<int,double,int>
+class gillespie: public BCNetwork<int,double,int>
 {
 public:
 //constructor

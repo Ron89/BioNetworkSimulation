@@ -2,7 +2,5 @@ ifeq ($(OUTPUT),0)
 	$(OUTPUT) = TEST1
 endif
 
-
-
-main: main.cpp histoGen.h modelLoader.h gillespie.h basicDef.h timeDerivative.h
+main: 	main.cpp basicDef.h BCNetwork.h gillespie.h  modelLoader.h ODECommon.h ODEOperation.h rungeKutta.h
 	g++ -Wall -g main.cpp -o ~/bin/$(OUTPUT) 
