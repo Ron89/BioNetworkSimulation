@@ -11,7 +11,7 @@ public:
 	ODENetwork(vector<double> & initComp, vector<double> & inputRate,  
 			int * inputRateMatrix, int * inputUpdateMatrix, double 
 			initTimeStep) : 
-		BCNetwork(initComp, inputRate, inputRateMatrix, inputUpdateMatrix)
+		BCNetwork<double,double,int>(initComp, inputRate, inputRateMatrix, inputUpdateMatrix)
 	{
 		h0=initTimeStep;
 	}

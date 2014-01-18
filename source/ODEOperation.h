@@ -23,7 +23,7 @@ public:
 			int * inputRateMatrix, int * inputUpdateMatrix, 
 			double initTimeStep, double runTime, double saveInterval) : 
 		ODENetwork(initComp, inputRate, inputRateMatrix, inputUpdateMatrix,
-				initTimeStep), RKmethod(nComp, h0, &ODESimulate::ODETimeDeri)
+				initTimeStep), RKmethod<ODESimulate>(nComp, h0, &ODESimulate::ODETimeDeri)
 	{
 		stoppingTime=runTime;
 		saveTimeInterval=saveInterval;
@@ -33,7 +33,7 @@ public:
 
 void ODESimulate::reset()
 {
-	BCNetwork::reset();
+	BCNetwork<double,double,int>::reset();
 	lastSavedTime=0;
 	ht=h0;
 }
@@ -43,7 +43,7 @@ void ODESimulate::simulate(string & identifier)
 	fileOpen(identifier);
 	while(t<stoppingTime)
 	{
-		iterate(comp,t);	
+		t=iterate(comp,t);	
 		if (t>=lastSavedTime+saveTimeInterval)
 		{
 			saveData();

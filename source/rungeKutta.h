@@ -40,7 +40,7 @@ protected:
 // Algorithm core, read current time and value for each variable, return
 // the time and
 // value of the next time step.
-	void iterate(double * var, double time);
+	double iterate(double * var, double time);
 
 public:
 //constructor and destructor
@@ -104,7 +104,7 @@ void RKmethod<modelClassType>::destructor()
 }
 
 template<typename modelClassType>
-void RKmethod<modelClassType>::iterate(double * var, double time)
+double RKmethod<modelClassType>::iterate(double * var, double time)
 {
 	double maxDelta=0,tempDelta;
 
@@ -157,6 +157,8 @@ void RKmethod<modelClassType>::iterate(double * var, double time)
 
 //Normalize result
 	ODEIVPCommon<modelClassType>::Normalizer(var);
+
+	return time;
 }
 
 #endif 	// __rungeKutta_H__ defined
