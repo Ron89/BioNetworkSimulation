@@ -25,6 +25,7 @@ class RKmethod: public ODEIVPCommon<modelClassType>
 {
 private:
 	double * K1, * K2,* K3, * K4, * K5, * K6, * temp, * tempDeri;
+	bool iteratorPrepared; 
 
 	inline void RKAccumulate(double * fState, double * iState, double * deri,
 		double step)		// Basic iteration from one state to the next state.
@@ -36,14 +37,18 @@ private:
 	void constructor();
 	void destructor();
 
-protected:
+public:
 // Algorithm core, read current time and value for each variable, return
 // the time and
 // value of the next time step.
-	double iterate(double * var, double time);
+	double iterate(double * var);
 
 public:
 //constructor and destructor
+	RKmethod()
+	{
+		iteratorPrepared=0;
+	}
 	RKmethod(int sysSize,
 		double initTimeStep, 
 		void (modelClassType::*targetODEs)(double *, double *)) :
@@ -72,9 +77,9 @@ public:
 template<typename modelClassType>
 void RKmethod<modelClassType>::constructor()
 {
-	if(ODEIVPCommon<modelClassType>::iteratorPrepared==0)
+	if(iteratorPrepared==0)
 	{
-		ODEIVPCommon<modelClassType>::iteratorPrepared=1;
+		iteratorPrepared=1;
 		K1=new double [ODEIVPCommon<modelClassType>::varNumber];
 		K2=new double [ODEIVPCommon<modelClassType>::varNumber];
 		K3=new double [ODEIVPCommon<modelClassType>::varNumber];
@@ -89,9 +94,9 @@ void RKmethod<modelClassType>::constructor()
 template<typename modelClassType>
 void RKmethod<modelClassType>::destructor()
 {
-	if(ODEIVPCommon<modelClassType>::iteratorPrepared==1)
+	if(iteratorPrepared==1)
 	{
-		ODEIVPCommon<modelClassType>::iteratorPrepared=0;
+		iteratorPrepared=0;
 		delete [] K1;
 		delete [] K2;
 		delete [] K3;
@@ -104,9 +109,9 @@ void RKmethod<modelClassType>::destructor()
 }
 
 template<typename modelClassType>
-double RKmethod<modelClassType>::iterate(double * var, double time)
+double RKmethod<modelClassType>::iterate(double * var)
 {
-	double maxDelta=0,tempDelta;
+	double maxDelta=0,tempDelta,deltaTime;
 
 	for (int i=0;i<ODEIVPCommon<modelClassType>::varNumber;i++)	
 		temp[i]=tempDeri[i]=K1[i]=K2[i]=K3[i]=K4[i]=K5[i]=K6[i]=0.;
@@ -140,7 +145,7 @@ double RKmethod<modelClassType>::iterate(double * var, double time)
 		var[i]=var[i]+
 			RKC01*K1[i]+RKC02*K2[i]+RKC03*K3[i]+RKC04*K4[i]+
 			RKC05*K5[i]+RKC06*K6[i];
-	time+=ODEIVPCommon<modelClassType>::ht;
+	deltaTime = ODEIVPCommon<modelClassType>::ht;
 
 //deciding next stepsize
 	for	(int i=0;i<ODEIVPCommon<modelClassType>::varNumber;i++)
@@ -158,7 +163,7 @@ double RKmethod<modelClassType>::iterate(double * var, double time)
 //Normalize result
 	ODEIVPCommon<modelClassType>::Normalizer(var);
 
-	return time;
+	return deltaTime;
 }
 
 #endif 	// __rungeKutta_H__ defined

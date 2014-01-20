@@ -28,14 +28,7 @@ using namespace std;
 
 class gillespie: public BCNetwork<int,double,int>
 {
-public:
-//constructor
-	gillespie(){}
-
-	gillespie(vector<int> & initComp, vector<double> & inputRate,  
-			int * inputRateMatrix, int * inputUpdateMatrix, 
-			double runTime ,bool sMethod, double saveInterval);
-
+private:
 //random generator
 //	dsfmt_t dsfmt;
 	inline void reseedRandom(int seed)
@@ -51,6 +44,15 @@ public:
 //		return dsfmt_genrand_close_open(&dsfmt);
 //		return randGen.operator();
 	}
+
+public:
+//constructor
+	gillespie(){}
+
+	gillespie(vector<int> & initComp, vector<double> & inputRate,  
+			int * inputRateMatrix, int * inputUpdateMatrix, 
+			double runTime ,bool sMethod, double saveInterval);
+
 
 //algorithm functional parts
 	void simulate(); 	//simulation module;

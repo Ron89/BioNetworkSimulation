@@ -21,10 +21,15 @@ class BCNetwork
 // 					as public so that user may freely change each value they think
 // 					necessary.
 {
-public:
 //data saving related
+private:
+	bool networkSpecified;
 	ofstream resultFile; 	//file pointer for storying data
+// create and erase network
+	void eraseNetwork();
+	void createNetwork(int numComponent, int numRate);
 
+public:
 //core module
 	double t; 				//current timepoint
 	int nComp; 				//number of time dependent variables
@@ -36,7 +41,6 @@ public:
 												//(left side of reaction i)
 	powerType * updateMatrix; 	//matrix to store update relation
 												//(net change after reaction i happens)
-	bool networkSpecified;
 
 	void errorWarning(int errorIdentifier); 	//error message
 
@@ -64,10 +68,6 @@ public:
 		for (int i=0;i<nComp;i++) 	comp[i]=compBackup[i];
 		t=0;
 	}
-
-// create and erase network
-	void eraseNetwork();
-	void createNetwork(int numComponent, int numRate);
 
 	BCNetwork()
 	{

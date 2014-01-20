@@ -1,0 +1,229 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+</head>
+<body>
+<div id="TOC">
+<ul>
+<li><a href="#documentary-for-bcnetwork-simulation-related-codes.">Documentary for BCNetwork simulation related Codes.</a><ul>
+<li><a href="#biochemical-models-storage-and-conversion">Biochemical models storage and conversion</a><ul>
+<li><a href="#bcnetwork-class-template">BCNetwork Class Template</a></li>
+<li><a href="#odeivpcommon-class-template">ODEIVPCommon Class Template</a></li>
+<li><a href="#rkmethod-class-template">RKmethod Class Template</a></li>
+</ul></li>
+<li><a href="#user-facing-modules-for-biochemical-network-simulation">User facing modules for Biochemical Network simulation</a><ul>
+<li><a href="#odesimulate-class">ODESimulate Class</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+<h1 id="documentary-for-bcnetwork-simulation-related-codes."><a href="#documentary-for-bcnetwork-simulation-related-codes.">Documentary for BCNetwork simulation related Codes.</a></h1>
+<p>Purpose of this article is to create an index for the classes and modules defined in the projects. And guide the future development based on the work.</p>
+<h2 id="biochemical-models-storage-and-conversion"><a href="#biochemical-models-storage-and-conversion">Biochemical models storage and conversion</a></h2>
+<h3 id="bcnetwork-class-template"><a href="#bcnetwork-class-template">BCNetwork Class Template</a></h3>
+<p>defined in &quot;BCNetwork.h&quot;</p>
+<pre><code>template&lt;typename compType, typename rateType, typename powerType&gt;
+class BCNetwork</code></pre>
+<p>This module is the basic module to store the information necessary to describe a biochemical network. It is supposed to be able to handle all types of biochemical networks(from elemental to huge, both discrete and continuous.)</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">type name</th>
+<th align="left">meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>compType</code></td>
+<td align="left">data type of the amount of reactants</td>
+</tr>
+<tr class="even">
+<td align="left"><code>rateType</code></td>
+<td align="left">data type of the reactant constants</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>powerType</code></td>
+<td align="left">data type of both rate matrix and update matrix</td>
+</tr>
+</tbody>
+</table>
+<h4 id="public-variable-members"><a href="#public-variable-members">Public variable members</a></h4>
+<table>
+<thead>
+<tr class="header">
+<th align="left"><code>&lt;type&gt; variable_name</code></th>
+<th align="left">meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>&lt;double&gt; t</code></td>
+<td align="left">current time of the network</td>
+</tr>
+<tr class="even">
+<td align="left"><code>&lt;int&gt; nComp</code></td>
+<td align="left">number of reactants</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>&lt;compType&gt; * comp</code></td>
+<td align="left">pointer to datablock that store amount of each reactants</td>
+</tr>
+<tr class="even">
+<td align="left"><code>&lt;compType&gt; * compBackup</code></td>
+<td align="left">same as <code>comp</code>, a back up datablock for resetting purpose</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>&lt;int&gt; nRate</code></td>
+<td align="left">number of rate constants</td>
+</tr>
+<tr class="even">
+<td align="left"><code>rateType * rate</code></td>
+<td align="left">pointer to datablock that store each rate constants</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>powerType * rateMatrix</code></td>
+<td align="left">pointer to datablock for rate matrix. Format: <code>i*nComp+j</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>powerType * updateMatrix</code></td>
+<td align="left">pointer to datablock for update matrix. Format, as above.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="public-function-members"><a href="#public-function-members">Public function members</a></h4>
+<pre><code>int loadParameter(vector&lt;compType&gt; &amp;, vector&lt;rateType&gt; &amp;, powerType *, powerType *);</code></pre>
+<p>Load parameter from a certain model. Four types of parameters required to fully describe a model are required. the four inputs are respectively : amount of reactants as a form of vector; amount of rate constants as a form of vector; rate matrix as a datablock of same format as described in variable members; update matrix as a datablock of same requirement.</p>
+<p>loadParameter will import all the information obtained from the input into the inbuilt dataset. So the destruction of input source after the import will not disturb the funtion of this modules or any modules that inherit from it.</p>
+<p>Importing a second network will overwrite the previous one stored in. The previous network will be automatically completely erased before a second network is written in, so backup is suggested before this action.</p>
+<pre><code>virtual void saveData();</code></pre>
+<p>Essentially this function will toss a copy of the current time and amount of each reactants into the data file opened by <code>int fileOpen(string &amp;)</code>. Data will be saved in a file named &quot;./result/simEmergency&quot; if no file is opened. But open a file before saving the data is still suggested.</p>
+<p>Note that this member function covers only the basic saving feature and changable in classes inherit this class template.</p>
+<pre><code>inline void reset();</code></pre>
+<p>This reset function reserves the function of <code>BCNetwork::reset()</code>. It also restore <code>BCNetwork::t</code>, <code>lastSavedTime</code> and <code>nOfNewStep</code> to 0.</p>
+<h4 id="constructordestructor"><a href="#constructordestructor">Constructor/Destructor</a></h4>
+<pre><code>gillespie(vector&lt;int&gt; &amp; initComp, vector&lt;double&gt; &amp; inputRate,
+        int * inputRateMatrix, int * inputUpdateMatrix,
+        double runTime ,bool sMethod=0, double saveInterval=1)</code></pre>
+<p>It calls <code>BCNetwork::loadParameter(...)</code> to load a biochemical network. <code>stoppingTime</code> will be determined by <code>runTime</code>, <code>saveMethod</code> will be determined by <code>sMethod</code>. <code>saveInterval</code> will determine the value of either <code>savePointInterval</code> or <code>saveTimeInterval</code> considering which <code>saveMethod</code> user choose.</p>
+<h4 id="further-note"><a href="#further-note">Further note</a></h4>
+<p>The random number generator used by this class is rand48 given in gcc library. Involved function members are</p>
+<pre><code>inline void reseedRandom(int seed);
+inline double popRandom();</code></pre>
+<p>Should other random number generator be used instead the current one. These two member functions can be changed accordingly.</p>
+<h3 id="odeivpcommon-class-template"><a href="#odeivpcommon-class-template">ODEIVPCommon Class Template</a></h3>
+<p>defined in &quot;ODECommon.h&quot;</p>
+<pre><code>template&lt;typename modelClassType&gt;
+class ODEIVPCommon</code></pre>
+<p>This class is a basic class template for all algorithms created for ODE's Initial Value Problem simulation. Currently only Runge-Kutta based simulator is created from it.</p>
+<p><code>modelClassType</code> is a typename specified by the models that algorithms are applied upon. It is used by member function pointers of the algorithms for proper scope names.</p>
+<h4 id="public-variable-members-1"><a href="#public-variable-members-1">public variable members</a></h4>
+<table>
+<thead>
+<tr class="header">
+<th align="left"><code>&lt;type&gt; variable_name</code></th>
+<th align="left">meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>double ht</code></td>
+<td align="left">current stepsize. For adaptive stepsize algorithms, this value is usually different from <code>ODENetwork::h0</code></td>
+</tr>
+<tr class="even">
+<td align="left"><code>int varNumber</code></td>
+<td align="left">number of variables/ODEs.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>void (modelClassType::*ODEs)(double *, double *)</code></td>
+<td align="left">member function pointer. Used to point to ODEs function provided by the specific model.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>int (*Normalizer)(double *)</code></td>
+<td align="left">a normalizer, usually need to be specified for each different problem. Thus by definition it's not bound to the member class. Note that this is a function pointer, only static function can be pointed by it.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="public-function-members-1"><a href="#public-function-members-1">Public function members</a></h4>
+<p>N/A</p>
+<h4 id="constructordestructor-1"><a href="#constructordestructor-1">Constructor/Destructor</a></h4>
+<pre><code>ODEIVPCommon();
+ODEIVPCommon(int sysSize, double initTimeStep,
+        void (modelClassType::*targetODEs)(double *, double *));
+ODEIVPCommon(int sysSize, double initTimeStep, 
+        void (modelClassType::*targetODEs)(double *, double *),
+        int (*targetNormalizer)(double *));</code></pre>
+<p>Three constructors are defined for this class template.</p>
+<p>Default constructor does nothing.</p>
+<p><code>ODEIVPCommon(int , double, void (modelClassType::*)(double*, double*));</code> is used when no normalizer is required. This constructor will load the first parameter as <code>varNumber</code>, second parameter as the initial value for <code>ht</code>, and third parameter as the address function pointer <code>void (modelClassType::*ODEs)</code> pointing to. Normalizer will be specified to <code>int blankNormalizer(double *)</code> defined in &quot;ODECommon.h&quot;. Normalizer can be otherwisely specified to other functions defined by user afterwards.</p>
+<p><code>ODEIVPCommon(int , double, void (modelClassType::*)(double*, double*), int (*)(double *));</code> is used when normalizer is required. First 3 parameters have the same meaning. And the last parameter is used to specify the pointer pointing to the normalizer function.</p>
+<h3 id="rkmethod-class-template"><a href="#rkmethod-class-template">RKmethod Class Template</a></h3>
+<p>defined in &quot;rungeKutta.h&quot;</p>
+<pre><code>template&lt;typename modelClassType&gt;
+class RKmethod: public ODEIVPCommon&lt;modelClassType&gt;;</code></pre>
+<p>This is an algorithm class template using adaptive stepsize Runge-Kutta method for ODEs simulation of initial value problems. This class will do one thing, and one thing alone. Given current values of all components, their value of next time step and the time interval of current iteration will be returned. Users can implement this algorithm in their model for simulation and do any analysis they want with the returned data.</p>
+<p>Note that due to the concern of reliable use of this algorithm, this class is not supposed to be directly modified by any means, thus most functions are kept private.</p>
+<h4 id="public-function-members-2"><a href="#public-function-members-2">Public function members</a></h4>
+<pre><code>double iterator(double * var);</code></pre>
+<p>This function takes in the datablock storying current value of the variables pointed by <code>* var</code>. New value after one step of iteration will be directly written into the datablock <code>* var</code> pointing to. Time interval for this step of iteration will also be returned as a double value. User can use the time interval to determine the exact time value after this iteration.</p>
+<h4 id="constructordestructor-2"><a href="#constructordestructor-2">Constructor/Destructor</a></h4>
+<pre><code>RKmethod();
+RKmethod(int sysSize, double initTimeStep,
+        void (modelClassType::*targetODEs)(double *, double *)) :
+        ODEIVPCommon&lt;modelClassType&gt;::ODEIVPCommon(sysSize, initTimeStep, targetODEs);
+RKmethod(int sysSize, double initTimeStep, 
+        void (modelClassType::*targetODEs)(double *, double *),  
+        void (*targetNormalizer)(double *)): 
+        ODEIVPCommon&lt;modelClassType&gt;::ODEIVPCommon(sysSize, initTimeStep,
+        targetODEs,targetNormalizer);</code></pre>
+<p>The use of the three constructors given by this class template mirror the three constructors of <code>ODEIVPCommon</code>. The first one only initiate the private variables to their working states; Second constructor is used for the case that no normalizer is required; third constructor is used when a normalizer is required for a successful simulation.</p>
+<h2 id="user-facing-modules-for-biochemical-network-simulation"><a href="#user-facing-modules-for-biochemical-network-simulation">User facing modules for Biochemical Network simulation</a></h2>
+<p>Class <code>gillespie</code> described in algorithm classes also falls to this catagory.</p>
+<h3 id="odesimulate-class"><a href="#odesimulate-class">ODESimulate Class</a></h3>
+<p>defined in &quot;ODEOperation.h&quot;</p>
+<pre><code>class ODESimulate : public ODENetwork , public RKmethod&lt;ODESimulate&gt;</code></pre>
+<p>This class use Runge-Kutta algorithm to do simulation on IVP of ODEs defined by ODENetwork.</p>
+<h4 id="public-variable-members-2"><a href="#public-variable-members-2">Public variable members</a></h4>
+<table>
+<thead>
+<tr class="header">
+<th align="left"><code>&lt;type&gt; variable_name</code></th>
+<th align="left">meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>double stoppingTime</code></td>
+<td align="left">the stopping signal for the simulation</td>
+</tr>
+<tr class="even">
+<td align="left"><code>double saveTimeInterval</code></td>
+<td align="left">the interval of saving points measured by time interval.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>double lastSavedTime</code></td>
+<td align="left">the time point in which last saving action has taken places.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="public-function-members-3"><a href="#public-function-members-3">Public function members</a></h4>
+<pre><code>void simulate(string &amp; identifier);</code></pre>
+<p>This function will simulate the system and store the result in a file specified by <code>&amp; identifier</code>(it automatically call the function <code>BCNetwork::fileOpen(string &amp;)</code>).</p>
+<hr />
+<pre><code>void reset();</code></pre>
+<p>This function retains the function of <code>BCNetwork::reset()</code>. It also restore <code>lastSavedTime</code> to 0. And restore <code>ODEIVPCommon::ht</code> to the value specified by <code>ODENetwork::h0</code>.</p>
+<h4 id="constructor-and-destructor"><a href="#constructor-and-destructor">Constructor and Destructor</a></h4>
+<pre><code>ODESimulate(vector&lt;double&gt; &amp; initComp, vector&lt;double&gt; &amp; inputRate,
+        int * inputRateMatrix, int * inputUpdateMatrix, 
+        double initTimeStep, double runTime, double saveInterval) :
+        ODENetwork(initComp, inputRate, inputRateMatrix, inputUpdateMatrix,
+        initTimeStep), RKmethod&lt;ODESimulate&gt;(nComp, h0, &amp;ODESimulate::ODETimeDeri);</code></pre>
+<p>Notice that no default constructor is defined. This constructor will load a typical biochemical network, and call the constructor of <code>RKmethod</code> that doesn't use normalizer. Two additional information is loaded to specify <code>stoppingTime</code> and <code>saveTimeInterval</code>.</p>
+<pre><code>    stoppingTime=runTime;
+    saveTimeInterval=saveInterval;</code></pre>
+</body>
+</html>

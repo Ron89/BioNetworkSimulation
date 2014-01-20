@@ -21,17 +21,17 @@ public:
 template<typename modelClassType>
 class ODEIVPCommon
 {
+protected:
+	int varNumber;
+
 public:
 	double ht;
-	int varNumber;
-	bool iteratorPrepared; 
 
 	void (modelClassType::*ODEs)(double *, double *);
 	int (*Normalizer)(double *);
 
 	ODEIVPCommon()
 	{
-		iteratorPrepared=0;
 	}
 	ODEIVPCommon(int sysSize,
 		double initTimeStep,

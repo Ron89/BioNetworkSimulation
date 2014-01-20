@@ -43,7 +43,7 @@ void ODESimulate::simulate(string & identifier)
 	fileOpen(identifier);
 	while(t<stoppingTime)
 	{
-		t=iterate(comp,t);	
+		t+=iterate(comp);	
 		if (t>=lastSavedTime+saveTimeInterval)
 		{
 			saveData();
