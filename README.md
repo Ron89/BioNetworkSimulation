@@ -12,7 +12,7 @@ on the work.
 
 defined in "BCNetwork.h"
 
-```
+```cpp
 template<typename compType, typename rateType, typename powerType>
 class BCNetwork
 ```
@@ -22,7 +22,7 @@ describe a biochemical network. It is supposed to be able to handle
 all types of biochemical networks(from elemental to huge, both discrete
 and continuous.)
 
-type name | meaning
+typename | meaning
 --- | ---
 `compType` | data type of the amount of reactants
 `rateType` | data type of the reactant constants
@@ -30,13 +30,13 @@ type name | meaning
 
 #### Public variable members
 
- `<type> variable_name` |	meaning               
+ `type variable_name` |	meaning
 ------- | ----------------------
- `<double> t` | current time of the network 
-`<int> nComp` | number of reactants
-`<compType> * comp` | pointer to datablock that store amount of each reactants
-`<compType> * compBackup` | same as `comp`, a back up datablock for resetting purpose
-`<int> nRate` |  number of rate constants
+ `double t` | current time of the network 
+`int nComp` | number of reactants
+`compType * comp` | pointer to datablock that store amount of each reactants
+`compType * compBackup` | same as `comp`, a back up datablock for resetting purpose
+`int nRate` |  number of rate constants
 `rateType * rate` | pointer to datablock that store each rate constants
 `powerType * rateMatrix` | pointer to datablock for rate matrix. Format: `i*nComp+j`
 `powerType * updateMatrix` | pointer to datablock for update matrix. Format, as above.
@@ -44,7 +44,7 @@ type name | meaning
 
 #### Public function members
 
-```
+```cpp
 int loadParameter(vector<compType> &, vector<rateType> &, powerType *, powerType *);
 ```
 
@@ -67,7 +67,7 @@ automatically completely erased before a second network is written in, so backup
 
 ---
 
-```
+```cpp
 int fileOpen(string & condition);
 int fileClose();
 ```
@@ -84,7 +84,7 @@ Note that the folder name "./result/" is defined in "basicDef.h" as
 
 ---
 
-```
+```cpp
 virtual void saveData();
 ```
 
@@ -98,7 +98,7 @@ classes inherit this class template.
 
 ---
 
-```
+```cpp
 virtual void reset();
 ```
 
@@ -108,7 +108,7 @@ classed derived from this class template.
 
 #### Constructor and Destructor
 
-```
+```cpp
 BCNetwork();
 BCNetwork(vector<compType> & initComp, vector<rateType> & inputRate, 
              powerType * inputRateMatrix, powerType * inputUpdateMatrix);
@@ -123,9 +123,10 @@ call `int loadParameter(...)` to load a model when initiating the class.
 its destruction.
 
 ### modelLoadder Class Template
+
 defined in "modelLoader.h"
 
-```
+```cpp
 template <typename compType, typename rateType, typename powerType >
 class modelLoader
 ```
@@ -135,7 +136,7 @@ is temporary before it's function incorporated into `BCNetwork` class template.
 
 #### public function members
 
-```
+```cpp
 void loadParameter(string & mName);
 ```
 
@@ -144,17 +145,17 @@ This is the only functional member. It's used to load model parameters stored in
 project. To completely load a model, four files will be read. The name of them are 
 specified as macros stored in "basicDef.h":
 
-```
+```cpp
 #define RATEFILE "rate" 	// reaction rate constants, first line is the number of reactions
-#define INITCONDFILE "initCond" 	//initial condition for each reactants, first line is the  
-									//number of reactants
+#define INITCONDFILE "initCond" 	//initial condition for each reactants, first line is  
+									//the number of reactants
 #define RATEMATRIXFILE "rMatrix" 	//rate matrix, same format as in datablock
 #define UPDATEMATRIXFILE "updMatrix" 	//update matrix, same format as in datablock
 ```
 
 #### Constructor/Destructor
 
-```
+```cpp
 modelLoader(string & mName);
 ~modelLoader();
 ```
@@ -167,7 +168,7 @@ behavior.
 
 defined in "ODECommon.h"
 
-```
+```cpp
 class ODENetwork : public BCNetwork<double, double, int>
 ```
 
@@ -184,13 +185,13 @@ For specific cases that require non-integer powerType, change the type according
 
 #### Protected member
 
-`<type> variable_name` | meaning
+`type variable_name` | meaning
 --- | ---
 `double h0` | initial size of time step
 
 #### Public function members
 
-```
+```cpp
 void ODETimeDeri(double * timeDeri, double * component);
 ```
 
@@ -204,7 +205,7 @@ called. Backup is suggested if there is anything you don't want to be erased the
 
 #### Constructor/ Destructor
 
-```
+```cpp
 ODENetwork(vector<double> & initComp, vector<double> & inputRate, 
             int * inputRateMatrix, int * inputUpdateMatrix, double                              
             initTimeStep) :   
@@ -217,11 +218,14 @@ loads a biochemical network, and give `h0` an initial value given by user.
 
 ## Algorithms
 
+The following classes are defined as algorithms used for biochemical network related
+simulation
+
 ### Gillespie Algorithm
 
 defined in "gillespie.h"
 
-```
+```cpp
 class gillespie: public BCNetwork<int, double, int>
 ```
 
@@ -234,7 +238,7 @@ be seperated in the future.
 
 #### Public variable members
 
-`<type> variable_name` | meaning
+`type variable_name` | meaning
 --- | ---
 `double stoppingTime` | the stopping signal for the simulation
 `long long int savePointInterval` | the interval of saving points by count of steps
@@ -246,7 +250,7 @@ be seperated in the future.
 
 #### Public function members
 
-```
+```cpp
 void simulate();
 ```
 
@@ -258,7 +262,7 @@ once the saving condition is satisfied, the current time and the current datablo
 
 ---
 
-```
+```cpp
 inline void reset();
 ```
 
@@ -267,7 +271,7 @@ This reset function reserves the function of `BCNetwork::reset()`. It also resto
 
 #### Constructor/Destructor
 
-```
+```cpp
 gillespie(vector<int> & initComp, vector<double> & inputRate,
         int * inputRateMatrix, int * inputUpdateMatrix,
         double runTime ,bool sMethod=0, double saveInterval=1)
@@ -282,7 +286,7 @@ It calls `BCNetwork::loadParameter(...)` to load a biochemical network.
 The random number generator used by this class is rand48 given in gcc library.
 Involved function members are
 
-```
+```cpp
 inline void reseedRandom(int seed);
 inline double popRandom();
 ```
@@ -294,7 +298,7 @@ member functions can be changed accordingly.
 
 defined in "ODECommon.h"
 
-```
+```cpp
 template<typename modelClassType>
 class ODEIVPCommon
 ```
@@ -309,7 +313,7 @@ names.
 
 #### public variable members
 
-`<type> variable_name` | meaning
+`type variable_name` | meaning
 --- | ---
 `double ht` | current stepsize. For adaptive stepsize algorithms, this value is usually different from `ODENetwork::h0`
 `int varNumber` | number of variables/ODEs.
@@ -322,7 +326,7 @@ N/A
 
 #### Constructor/Destructor
 
-```
+```cpp
 ODEIVPCommon();
 ODEIVPCommon(int sysSize, double initTimeStep,
 		void (modelClassType::*targetODEs)(double *, double *));
@@ -350,7 +354,7 @@ parameter is used to specify the pointer pointing to the normalizer function.
 
 defined in "rungeKutta.h"
 
-```
+```cpp
 template<typename modelClassType>
 class RKmethod: public ODEIVPCommon<modelClassType>;
 ```
@@ -367,7 +371,7 @@ to be directly modified by any means, thus most functions are kept private.
 
 #### Public function members
 
-```
+```cpp
 double iterator(double * var);
 ```
 
@@ -379,7 +383,7 @@ iteration.
 
 #### Constructor/Destructor
 
-```
+```cpp
 RKmethod();
 RKmethod(int sysSize, double initTimeStep,
 		void (modelClassType::*targetODEs)(double *, double *)) :
@@ -404,7 +408,7 @@ Class `gillespie` described in algorithm classes also falls to this catagory.
 
 defined in "ODEOperation.h"
 
-```
+```cpp
 class ODESimulate : public ODENetwork , public RKmethod<ODESimulate>
 ```
 
@@ -412,7 +416,7 @@ This class use Runge-Kutta algorithm to do simulation on IVP of ODEs defined by 
 
 #### Public variable members
 
-`<type> variable_name` | meaning
+`type variable_name` | meaning
 --- | ---
 `double stoppingTime` | the stopping signal for the simulation
 `double saveTimeInterval` | the interval of saving points measured by time interval.
@@ -420,7 +424,7 @@ This class use Runge-Kutta algorithm to do simulation on IVP of ODEs defined by 
 
 #### Public function members
 
-```
+```cpp
 void simulate(string & identifier);
 ```
 
@@ -429,7 +433,7 @@ This function will simulate the system and store the result in a file specified 
 
 ---
 
-```
+```cpp
 void reset();
 ```
 
@@ -439,7 +443,7 @@ This function retains the function of `BCNetwork::reset()`. It also restore
 
 #### Constructor and Destructor
 
-```
+```cpp
 ODESimulate(vector<double> & initComp, vector<double> & inputRate,
 		int * inputRateMatrix, int * inputUpdateMatrix, 
 		double initTimeStep, double runTime, double saveInterval) :
@@ -452,7 +456,7 @@ biochemical network, and call the constructor of `RKmethod` that doesn't use
 normalizer. Two additional information is loaded to specify `stoppingTime` and
 `saveTimeInterval`.
 
-```
+```cpp
 	stoppingTime=runTime;
 	saveTimeInterval=saveInterval;
 ```
