@@ -14,11 +14,6 @@
 
 #include<random>
 
-//used to generate directory
-#include<sys/types.h>
-#include<sys/stat.h>
-#include<unistd.h>
-
 #include"BCNetwork.h"
 #include"basicDef.h"
 //#include "dSFMT.h"
@@ -68,7 +63,7 @@ public:
 	double stoppingTime;
 
 //reset
-	inline void reset()
+	virtual void reset()
 	{
 		for (int i=0;i<nComp;i++) 	comp[i]=compBackup[i];
 		t=lastSavedTime=0;
@@ -87,7 +82,6 @@ gillespie::gillespie(vector<int> & initComp, vector<double> & inputRate,
 	if(saveMethod==0) 	savePointInterval=int(saveInterval);
 	else 	saveTimeInterval=saveInterval;
 	reset();
-	mkdir(RESULTFOLDER, 0755);
 	reseedRandom(1);
 
 	noSave=0; 	//allow data saving after running period
@@ -104,6 +98,23 @@ void gillespie::simulate()
 	
 	do
 	{
+// following is for deciding whether to save the current step.
+		if (noSave==0&&saveMethod)		
+		{
+			if(saveTimeInterval<=t-lastSavedTime)
+			{	saveData();
+ 				lastSavedTime=+saveTimeInterval;
+			}
+		}
+		else if (noSave==0)
+		{
+			if(savePointInterval<=nOfNewStep) 
+			{
+				saveData();
+				nOfNewStep=0;
+			}
+		}
+
 		r1=popRandom();
 		lambda=0;
 		lambdaSig[0]=0;
@@ -138,23 +149,6 @@ void gillespie::simulate()
 		for (int i=0;i<nComp;i++) 	comp[i]+=updateMatrix[ll*nComp+i];
 		t+=dt;
 		nOfNewStep+=1;
-		
-// following is for deciding whether to save the current step.
-		if (noSave==0&&saveMethod)		
-		{
-			if(saveTimeInterval<=t-lastSavedTime)
-			{	saveData();
- 				lastSavedTime=t;
-			}
-		}
-		else if (noSave==0)
-		{
-			if(savePointInterval<=nOfNewStep) 
-			{
-				saveData();
-				nOfNewStep=0;
-			}
-		}
 	}	
 	while (t<=haltSig);
 	delete [] lambdaSig;

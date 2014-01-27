@@ -6,6 +6,11 @@
 #include<vector>
 #include"basicDef.h"
 
+//used to generate directory
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<unistd.h>
+
 using namespace std;
 
 template <typename compType, typename rateType, typename powerType >
@@ -24,11 +29,11 @@ class BCNetwork
 //data saving related
 private:
 	bool networkSpecified;
-	ofstream resultFile; 	//file pointer for storying data
 // create and erase network
 	void eraseNetwork();
 	void createNetwork(int numComponent, int numRate);
-
+protected:
+	ofstream resultFile; 	//file pointer for storying data
 public:
 //core module
 	double t; 				//current timepoint
@@ -216,6 +221,8 @@ int BCNetwork<TYPENAME>::fileOpen(string & condition)
 		resultFile.close();
 		return 1;
 	}
+	mkdir(RESULTFOLDER, 0755);
+
 	string fileName(RESULTFOLDER);
 	fileName+=RESULTNAME;
 	fileName+=condition;
