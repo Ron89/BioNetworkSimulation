@@ -96,14 +96,16 @@ void gillespie::simulate()
 	double dt;
 	int ll,rl,templ;
 	
+	saveData();
 	do
 	{
 // following is for deciding whether to save the current step.
 		if (noSave==0&&saveMethod)		
 		{
-			if(saveTimeInterval<=t-lastSavedTime)
-			{	saveData();
- 				lastSavedTime=+saveTimeInterval;
+			while(saveTimeInterval<=t-lastSavedTime&&lastSavedTime<=haltSig)
+			{	
+				saveData();
+ 				lastSavedTime+=saveTimeInterval;
 			}
 		}
 		else if (noSave==0)

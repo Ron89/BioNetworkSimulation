@@ -75,7 +75,7 @@ public:
 			int * inputRateMatrix, int * inputUpdateMatrix, double runTime, 
 			double saveInterval): 
 		gillespie(initComp,inputRate,inputRateMatrix,inputUpdateMatrix, runTime,
-				saveInterval)
+		1,		saveInterval)
 	{
 		long int numRecordPoint=(long int)(runTime/saveInterval+1);
 		recordX.initiateRecorder(0,comp[0]+comp[3],numRecordPoint,saveInterval);
