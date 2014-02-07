@@ -129,6 +129,7 @@ void marginalDistriExtractor::saveDistri(string condition)
 		}
 		resultFile<<endl;
 	}
+	fileClose();
 
 	summaryFile.clear();
 	distriFile.clear();
@@ -151,6 +152,8 @@ void marginalDistriExtractor::saveDistri(string condition)
 		}
 		resultFile<<endl;
 	}
+	fileClose();
 }
+
 
 #endif
