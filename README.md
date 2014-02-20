@@ -6,6 +6,10 @@ Purpose of this article is to create an index for the classes and
 modules defined in the projects. And guide the future development based
 on the work.
 
+Note that the css file used for this README article is one of the css
+files hosted on [Github](https://github.com/jasonm23/markdown-css-themes
+"jasonm23/markdown-css-themes").
+
 ## Biochemical models storage and conversion
 
 ### BCNetwork Class Template
