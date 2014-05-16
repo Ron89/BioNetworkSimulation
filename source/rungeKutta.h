@@ -47,14 +47,14 @@ public:
 
 public:
 //constructor and destructor
-	RKmethod(maxTimeStep=0)
+	RKmethod(double maxTimeStep=0)
 	{
 		hMax=maxTimeStep;
 		iteratorPrepared=0;
 	}
 	RKmethod(int sysSize,
 		double initTimeStep, 
-		void (modelClassType::*targetODEs)(double *, double *),maxTimeStep=0) :
+		void (modelClassType::*targetODEs)(double *, double *),double maxTimeStep=0) :
 		ODEIVPCommon<modelClassType>::ODEIVPCommon(sysSize, initTimeStep, targetODEs)
 	{
 		hMax=maxTimeStep;
@@ -65,7 +65,7 @@ public:
 	RKmethod(int sysSize,
 		double initTimeStep, 
 		void (modelClassType::*targetODEs)(double *, double *),
-		void (*targetNormalizer)(double *),maxTimeStep=0):
+		void (*targetNormalizer)(double *), double maxTimeStep=0):
 		ODEIVPCommon<modelClassType>::ODEIVPCommon(sysSize, initTimeStep, 
 				targetODEs,targetNormalizer)
 	{
