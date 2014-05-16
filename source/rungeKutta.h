@@ -23,6 +23,8 @@ using namespace std;
 template<typename modelClassType>
 class RKmethod: public ODEIVPCommon<modelClassType>
 {
+public:
+	double hMax; 			//setup a maximum value for timestep
 private:
 	double * K1, * K2,* K3, * K4, * K5, * K6, * temp, * tempDeri;
 	bool iteratorPrepared; 
@@ -45,26 +47,30 @@ public:
 
 public:
 //constructor and destructor
-	RKmethod()
+	RKmethod(maxTimeStep=0)
 	{
+		hMax=maxTimeStep;
 		iteratorPrepared=0;
 	}
 	RKmethod(int sysSize,
 		double initTimeStep, 
-		void (modelClassType::*targetODEs)(double *, double *)) :
+		void (modelClassType::*targetODEs)(double *, double *),maxTimeStep=0) :
 		ODEIVPCommon<modelClassType>::ODEIVPCommon(sysSize, initTimeStep, targetODEs)
 	{
+		hMax=maxTimeStep;
+		iteratorPrepared=0;
 		ODEIVPCommon<modelClassType>::Normalizer=blankNormalizer;
 		constructor();
 	}
 	RKmethod(int sysSize,
 		double initTimeStep, 
 		void (modelClassType::*targetODEs)(double *, double *),
-		void (*targetNormalizer)(double *)):
+		void (*targetNormalizer)(double *),maxTimeStep=0):
 		ODEIVPCommon<modelClassType>::ODEIVPCommon(sysSize, initTimeStep, 
 				targetODEs,targetNormalizer)
-
 	{
+		hMax=maxTimeStep;
+		iteratorPrepared=0;
 		constructor();
 	}
 
@@ -88,6 +94,7 @@ void RKmethod<modelClassType>::constructor()
 		K6=new double [ODEIVPCommon<modelClassType>::varNumber];
 		temp=new double [ODEIVPCommon<modelClassType>::varNumber];
 		tempDeri=new double [ODEIVPCommon<modelClassType>::varNumber];
+		hMax=0;
 	}
 }
 
@@ -159,6 +166,7 @@ double RKmethod<modelClassType>::iterate(double * var)
 	}
 	if (maxDelta>1.) ODEIVPCommon<modelClassType>::ht=ODEIVPCommon<modelClassType>::ht*pow(maxDelta,-0.2);
 	else ODEIVPCommon<modelClassType>::ht=ODEIVPCommon<modelClassType>::ht*pow(maxDelta,-0.25);
+	if (ODEIVPCommon<modelClassType>::ht>hMax && hMax!=0) 	ODEIVPCommon<modelClassType>::ht=hMax;
 
 //Normalize result
 	ODEIVPCommon<modelClassType>::Normalizer(var);

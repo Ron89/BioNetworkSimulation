@@ -373,6 +373,19 @@ data.
 Note that due to the concern of reliable use of this algorithm, this class is not supposed 
 to be directly modified by any means, thus most functions are kept private. 
 
+#### Public member
+
+`type variable_name` | meaning
+--- | ---
+`double hMax` | maximum stepsize of iteration, `hMax=0` deactivates the limit. 
+
+
+`hMax` is added for situation where a cap of timestep length is necessary. By default 
+`hMax=0`, meaning there is no cap value for time step. For any value other than `0`, the
+maximum time step will be set to that value. User can change the 
+value of `hMax` during or after defining an instance of this class template.
+
+
 #### Public function members
 
 ```cpp
@@ -388,13 +401,13 @@ iteration.
 #### Constructor/Destructor
 
 ```cpp
-RKmethod();
+RKmethod(maxTimeStep=0);
 RKmethod(int sysSize, double initTimeStep,
-		void (modelClassType::*targetODEs)(double *, double *)) :
+		void (modelClassType::*targetODEs)(double *, double *), maxTimeStep=0) :
 		ODEIVPCommon<modelClassType>::ODEIVPCommon(sysSize, initTimeStep, targetODEs);
 RKmethod(int sysSize, double initTimeStep, 
 		void (modelClassType::*targetODEs)(double *, double *),  
-		void (*targetNormalizer)(double *)): 
+		void (*targetNormalizer)(double *), maxTimeStep=0): 
 		ODEIVPCommon<modelClassType>::ODEIVPCommon(sysSize, initTimeStep,
 		targetODEs,targetNormalizer);
 ```
@@ -402,7 +415,9 @@ RKmethod(int sysSize, double initTimeStep,
 The use of the three constructors given by this class template mirror the three constructors
 of `ODEIVPCommon`. The first one only initiate the private variables to their working states;
 Second constructor is used for the case that no normalizer is required; third constructor is
-used when a normalizer is required for a successful simulation.
+used when a normalizer is required for a successful simulation. If a limit of maximum timestep
+is required, users can change the value of `maxTimeStep`, whose value will be passed on to
+`hMax` during the class initialization.
 
 ## User facing modules for Biochemical Network simulation
 

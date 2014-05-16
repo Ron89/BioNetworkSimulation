@@ -308,20 +308,36 @@ ODEIVPCommon(<span class="dt">int</span> sysSize, <span class="dt">double</span>
 <span class="kw">class</span> RKmethod: <span class="kw">public</span> ODEIVPCommon&lt;modelClassType&gt;;</code></pre>
 <p>This is an algorithm class template using adaptive stepsize Runge-Kutta method for ODEs simulation of initial value problems. This class will do one thing, and one thing alone. Given current values of all components, their value of next time step and the time interval of current iteration will be returned. Users can implement this algorithm in their model for simulation and do any analysis they want with the returned data.</p>
 <p>Note that due to the concern of reliable use of this algorithm, this class is not supposed to be directly modified by any means, thus most functions are kept private.</p>
+<h4 id="public-member"><a href="#public-member">Public member</a></h4>
+<table>
+<thead>
+<tr class="header">
+<th align="left"><code>type variable_name</code></th>
+<th align="left">meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>double hMax</code></td>
+<td align="left">maximum stepsize of iteration, <code>hMax=0</code> deactivates the limit.</td>
+</tr>
+</tbody>
+</table>
+<p><code>hMax</code> is added for situation where a cap of timestep length is necessary. By default <code>hMax=0</code>, meaning there is no cap value for time step. For any value other than <code>0</code>, the maximum time step will be set to that value. User can change the value of <code>hMax</code> during or after defining an instance of this class template.</p>
 <h4 id="public-function-members-5"><a href="#public-function-members-5">Public function members</a></h4>
 <pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">double</span> iterator(<span class="dt">double</span> * var);</code></pre>
 <p>This function takes in the datablock storying current value of the variables pointed by <code>* var</code>. New value after one step of iteration will be directly written into the datablock <code>* var</code> pointing to. Time interval for this step of iteration will also be returned as a double value. User can use the time interval to determine the exact time value after this iteration.</p>
 <h4 id="constructordestructor-3"><a href="#constructordestructor-3">Constructor/Destructor</a></h4>
-<pre class="sourceCode cpp"><code class="sourceCode cpp">RKmethod();
+<pre class="sourceCode cpp"><code class="sourceCode cpp">RKmethod(maxTimeStep=<span class="dv">0</span>);
 RKmethod(<span class="dt">int</span> sysSize, <span class="dt">double</span> initTimeStep,
-        <span class="dt">void</span> (modelClassType::*targetODEs)(<span class="dt">double</span> *, <span class="dt">double</span> *)) :
+        <span class="dt">void</span> (modelClassType::*targetODEs)(<span class="dt">double</span> *, <span class="dt">double</span> *), maxTimeStep=<span class="dv">0</span>) :
         ODEIVPCommon&lt;modelClassType&gt;::ODEIVPCommon(sysSize, initTimeStep, targetODEs);
 RKmethod(<span class="dt">int</span> sysSize, <span class="dt">double</span> initTimeStep, 
         <span class="dt">void</span> (modelClassType::*targetODEs)(<span class="dt">double</span> *, <span class="dt">double</span> *),  
-        <span class="dt">void</span> (*targetNormalizer)(<span class="dt">double</span> *)): 
+        <span class="dt">void</span> (*targetNormalizer)(<span class="dt">double</span> *), maxTimeStep=<span class="dv">0</span>): 
         ODEIVPCommon&lt;modelClassType&gt;::ODEIVPCommon(sysSize, initTimeStep,
         targetODEs,targetNormalizer);</code></pre>
-<p>The use of the three constructors given by this class template mirror the three constructors of <code>ODEIVPCommon</code>. The first one only initiate the private variables to their working states; Second constructor is used for the case that no normalizer is required; third constructor is used when a normalizer is required for a successful simulation.</p>
+<p>The use of the three constructors given by this class template mirror the three constructors of <code>ODEIVPCommon</code>. The first one only initiate the private variables to their working states; Second constructor is used for the case that no normalizer is required; third constructor is used when a normalizer is required for a successful simulation. If a limit of maximum timestep is required, users can change the value of <code>maxTimeStep</code>, whose value will be passed on to <code>hMax</code> during the class initialization.</p>
 <h2 id="user-facing-modules-for-biochemical-network-simulation"><a href="#user-facing-modules-for-biochemical-network-simulation">User facing modules for Biochemical Network simulation</a></h2>
 <p>Class <code>gillespie</code> described in algorithm classes also falls to this catagory.</p>
 <h3 id="odesimulate-class"><a href="#odesimulate-class">ODESimulate Class</a></h3>
