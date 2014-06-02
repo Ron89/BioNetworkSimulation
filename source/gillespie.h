@@ -1,30 +1,17 @@
 #ifndef __GILLESPIE_H_INCLUDED__
 #define __GILLESPIE_H_INCLUDED__
-//====================
 
-#include<iostream>
 #include<cstdlib>
-#include<ctime>
-#include<fstream>
-#include<string>
-#include<algorithm>
 #include<cmath>
-#include<vector>
-// mersenne twister random generator
-
-#include<random>
-
-#include"BCNetwork.h"
-#include"basicDef.h"
-//#include "dSFMT.h"
-
+#include<ctime>
 
 using namespace std;
 
-class gillespie: public BCNetwork<int,double,int>
+template<typename modelClassName>
+class gillespie
 {
 private:
-//random generator
+// random generator
 //	dsfmt_t dsfmt;
 	inline void reseedRandom(int seed)
 	{
@@ -40,122 +27,80 @@ private:
 //		return randGen.operator();
 	}
 
+// Required parameter 
+	int reactionNumber;
+	int (modelClassName::*rateDetermine)(double *); 
+								// provided by model, first argument is the address for
+								// output reaction rates of each reaction.
+	int (modelClassName::*reactantUpdate)(const double *); 	
+								// second would be number of incicences for
+								// each reactions. First would be the output
+
 public:
-//constructor
+// constructor
 	gillespie(){}
 
-	gillespie(vector<int> & initComp, vector<double> & inputRate,  
-			int * inputRateMatrix, int * inputUpdateMatrix, 
-			double runTime ,bool sMethod, double saveInterval);
-
-
-//algorithm functional parts
-	void simulate(); 	//simulation module;
-
-//data saving&stopping related
-	bool saveMethod; 				//0-> save every savePointInterval steps;
-									//1-> save every saveTimeInterval of time;
-	bool noSave; 					//if noSave signal is 1. No data saving is allowed;	
-	long long int savePointInterval;
-	long long int nOfNewStep;
-	double saveTimeInterval;
-	double lastSavedTime;
-	double stoppingTime;
-
-//reset
-	virtual void reset()
+	gillespie(int reactionNumber_alias, int (modelClassName::*rateDetermine_alias)(double *),
+			int (modelClassName::*reactantUpdate_alias)(const double *))	
 	{
-		for (int i=0;i<nComp;i++) 	comp[i]=compBackup[i];
-		t=lastSavedTime=0;
-		nOfNewStep=0;
+		reactionNumber=reactionNumber_alias;
+		rateDetermine=rateDetermine_alias;
+		reactantUpdate=reactantUpdate_alias;
 	}
+
+// algorithm functional parts
+	double iterate();
 };
 
-gillespie::gillespie(vector<int> & initComp, vector<double> & inputRate,
-		int * inputRateMatrix, int * inputUpdateMatrix, 
-			double runTime ,bool sMethod=0, double saveInterval=1)
+template<typename modelClassName>
+double gillespie<modelClassName>::iterate()
 {
-	loadParameter(initComp, inputRate, inputRateMatrix, inputUpdateMatrix);
-
-	stoppingTime=runTime;
-	saveMethod=sMethod;
-	if(saveMethod==0) 	savePointInterval=int(saveInterval);
-	else 	saveTimeInterval=saveInterval;
-	reset();
-	reseedRandom(1);
-
-	noSave=0; 	//allow data saving after running period
-}
-
-void gillespie::simulate()
-{
-	double haltSig=(lastSavedTime=t)+stoppingTime;
 	double r1, r2;
-	double lambda;
-	double * lambdaSig=new double[nRate+1];
-	double dt;
-	int ll,rl,templ;
 	
-	saveData();
-	do
+	double dt;
+	double lambda;
+	double * rate=new double[reactionNumber];
+	double * lambdaSig=new double[reactionNumber+1];
+	int ll,rl,templ;
+
+	r1=popRandom();
+	lambdaSig[0]=0;
+
+	(static_cast<modelClassName*>(this)->*rateDetermine)(rate);
+	
+	for (int i=1;i<=reactionNumber;i++)
 	{
-// following is for deciding whether to save the current step.
-		if (noSave==0&&saveMethod)		
-		{
-			while(saveTimeInterval<=t-lastSavedTime&&lastSavedTime<=haltSig)
-			{	
-				saveData();
- 				lastSavedTime+=saveTimeInterval;
-			}
-		}
-		else if (noSave==0)
-		{
-			if(savePointInterval<=nOfNewStep) 
-			{
-				saveData();
-				nOfNewStep=0;
-			}
-		}
+		lambdaSig[i]=lambdaSig[i-1]+rate[i-1];
+		rate[i-1]=0;
+	}
+	lambda=lambdaSig[reactionNumber];
+	for (int i=1;i<=reactionNumber;i++) 	lambdaSig[i]/=lambda;
+	dt=-log(r1)/lambda;
 
-		r1=popRandom();
-		lambda=0;
-		lambdaSig[0]=0;
-		for (int i=1;i<=nRate;i++)
-		{
-			lambdaSig[i]=rate[i-1];
-			for (int j=0;j<nComp;j++)
-				lambdaSig[i]*=pow(double(comp[j]),double(rateMatrix[nComp*(i-1)+j]));
-			lambdaSig[i]+=lambdaSig[i-1];
-		}
-		lambda=lambdaSig[nRate];
-		for (int i=1;i<nRate+1;i++) 	lambdaSig[i]/=lambda;
-		dt=-log(r1)/lambda;
-		
-		lambda=0;
-		while(lambda==0)
-		{
-			lambda=1;
-			r2=popRandom();
-			for (int i=0;i<=nRate;i++) 	lambda*=(r2-lambdaSig[i]);
-		}
+// ensure that the random number generated didn't coincide with any boundary.
+	lambda=0;
+	while(lambda==0)
+	{
+		lambda=1;
+		r2=popRandom();
+		for (int i=0;i<=reactionNumber;i++) 	lambda*=(r2-lambdaSig[i]);
+	}
 
-		ll=0;
-		rl=nRate;
+	ll=0;
+	rl=reactionNumber;
 
-		while(rl-ll>1)
-		{
-			templ=(ll+rl)/2;
-			if(r2<lambdaSig[templ]) 	rl=templ;
-			else 	ll=templ;
-		}
-		for (int i=0;i<nComp;i++) 	comp[i]+=updateMatrix[ll*nComp+i];
-		t+=dt;
-		nOfNewStep+=1;
-	}	
-	while (t<=haltSig);
+	while(rl-ll>1)
+	{
+		templ=(ll+rl)/2;
+		if(r2<lambdaSig[templ]) 	rl=templ;
+		else 	ll=templ;
+	}
+	rate[ll]=1;
+	(static_cast<modelClassName*>(this)->*reactantUpdate)(rate);
+	delete [] rate;
 	delete [] lambdaSig;
+
+	return dt;
 }
-
-
 
 #endif 	//__GILLESPIE_H_INCLUDED__

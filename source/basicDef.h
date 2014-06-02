@@ -53,5 +53,13 @@
 // accuracy requirement used in step size adjustment
 #define ACCURACY 0.000001
 
+// coarse grained modelling
+#define MAXRATECOEF 4
+#define MAXDEPENDENCY 3
+#define MAXUPDSET 3
+
+// model defining file
+#define REACTIONFILE "reaction"
+#define REACTANTFILE "reactant"
 
 #endif 	//__BASICDEF_H__

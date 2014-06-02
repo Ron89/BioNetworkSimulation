@@ -2,5 +2,5 @@ ifeq ($(OUTPUT),0)
 	$(OUTPUT) = TEST1
 endif
 
-main: 	main.cpp basicDef.h BCNetwork.h gillespie.h  modelLoader.h ODECommon.h ODEOperation.h rungeKutta.h marginalDistriExtractor.h
+main: 	main.cpp basicDef.h BCNetwork.h gillespie.h  modelLoader.h ODECommon.h ODEOperation.h rungeKutta.h marginalDistriExtractor.h coarseGrainedCommon.h coarseGrainedOperation.h
 	g++ -Wall -g -std=c++0x main.cpp -o ~/bin/$(OUTPUT) 

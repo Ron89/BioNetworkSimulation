@@ -20,8 +20,8 @@ using namespace std;
 
 
 
-template<typename modelClassType>
-class RKmethod: public ODEIVPCommon<modelClassType>
+template<typename modelClassName>
+class RKmethod: public ODEIVPCommon<modelClassName>
 {
 public:
 	double hMax; 			//setup a maximum value for timestep
@@ -32,7 +32,7 @@ private:
 	inline void RKAccumulate(double * fState, double * iState, double * deri,
 		double step)		// Basic iteration from one state to the next state.
 	{
-		for (int i=0;i<ODEIVPCommon<modelClassType>::varNumber;i++)	fState[i]=iState[i]+step*deri[i];
+		for (int i=0;i<ODEIVPCommon<modelClassName>::varNumber;i++)	fState[i]=iState[i]+step*deri[i];
 	}
 // constructor and destructor for the dynamically allocated memory for the algorithm
 // Constructor should be called after the network is properly defined
@@ -54,19 +54,19 @@ public:
 	}
 	RKmethod(int sysSize,
 		double initTimeStep, 
-		void (modelClassType::*targetODEs)(double *, double *),double maxTimeStep=0) :
-		ODEIVPCommon<modelClassType>::ODEIVPCommon(sysSize, initTimeStep, targetODEs)
+		void (modelClassName::*targetODEs)(double *, double *),double maxTimeStep=0) :
+		ODEIVPCommon<modelClassName>::ODEIVPCommon(sysSize, initTimeStep, targetODEs)
 	{
 		hMax=maxTimeStep;
 		iteratorPrepared=0;
-		ODEIVPCommon<modelClassType>::Normalizer=blankNormalizer;
+		ODEIVPCommon<modelClassName>::Normalizer=blankNormalizer;
 		constructor();
 	}
 	RKmethod(int sysSize,
 		double initTimeStep, 
-		void (modelClassType::*targetODEs)(double *, double *),
+		void (modelClassName::*targetODEs)(double *, double *),
 		void (*targetNormalizer)(double *), double maxTimeStep=0):
-		ODEIVPCommon<modelClassType>::ODEIVPCommon(sysSize, initTimeStep, 
+		ODEIVPCommon<modelClassName>::ODEIVPCommon(sysSize, initTimeStep, 
 				targetODEs,targetNormalizer)
 	{
 		hMax=maxTimeStep;
@@ -80,26 +80,26 @@ public:
 	}
 };
 
-template<typename modelClassType>
-void RKmethod<modelClassType>::constructor()
+template<typename modelClassName>
+void RKmethod<modelClassName>::constructor()
 {
 	if(iteratorPrepared==0)
 	{
 		iteratorPrepared=1;
-		K1=new double [ODEIVPCommon<modelClassType>::varNumber];
-		K2=new double [ODEIVPCommon<modelClassType>::varNumber];
-		K3=new double [ODEIVPCommon<modelClassType>::varNumber];
-		K4=new double [ODEIVPCommon<modelClassType>::varNumber];
-		K5=new double [ODEIVPCommon<modelClassType>::varNumber];
-		K6=new double [ODEIVPCommon<modelClassType>::varNumber];
-		temp=new double [ODEIVPCommon<modelClassType>::varNumber];
-		tempDeri=new double [ODEIVPCommon<modelClassType>::varNumber];
+		K1=new double [ODEIVPCommon<modelClassName>::varNumber];
+		K2=new double [ODEIVPCommon<modelClassName>::varNumber];
+		K3=new double [ODEIVPCommon<modelClassName>::varNumber];
+		K4=new double [ODEIVPCommon<modelClassName>::varNumber];
+		K5=new double [ODEIVPCommon<modelClassName>::varNumber];
+		K6=new double [ODEIVPCommon<modelClassName>::varNumber];
+		temp=new double [ODEIVPCommon<modelClassName>::varNumber];
+		tempDeri=new double [ODEIVPCommon<modelClassName>::varNumber];
 		hMax=0;
 	}
 }
 
-template<typename modelClassType>
-void RKmethod<modelClassType>::destructor()
+template<typename modelClassName>
+void RKmethod<modelClassName>::destructor()
 {
 	if(iteratorPrepared==1)
 	{
@@ -115,47 +115,47 @@ void RKmethod<modelClassType>::destructor()
 	}
 }
 
-template<typename modelClassType>
-double RKmethod<modelClassType>::iterate(double * var)
+template<typename modelClassName>
+double RKmethod<modelClassName>::iterate(double * var)
 {
 	double maxDelta=0,tempDelta,deltaTime;
 
-	for (int i=0;i<ODEIVPCommon<modelClassType>::varNumber;i++)	
+	for (int i=0;i<ODEIVPCommon<modelClassName>::varNumber;i++)	
 		temp[i]=tempDeri[i]=K1[i]=K2[i]=K3[i]=K4[i]=K5[i]=K6[i]=0.;
-	(static_cast<modelClassType*>(this)->*(ODEIVPCommon<modelClassType>::ODEs))(tempDeri,var);
-	RKAccumulate(K1,K1,tempDeri,ODEIVPCommon<modelClassType>::ht);
+	(static_cast<modelClassName*>(this)->*(ODEIVPCommon<modelClassName>::ODEs))(tempDeri,var);
+	RKAccumulate(K1,K1,tempDeri,ODEIVPCommon<modelClassName>::ht);
 	RKAccumulate(temp,var,K1,RKB21);
-	(static_cast<modelClassType*>(this)->*(ODEIVPCommon<modelClassType>::ODEs))(tempDeri,temp);
-	RKAccumulate(K2,K2,tempDeri,ODEIVPCommon<modelClassType>::ht);
-	for (int i=0;i<ODEIVPCommon<modelClassType>::varNumber;i++)
+	(static_cast<modelClassName*>(this)->*(ODEIVPCommon<modelClassName>::ODEs))(tempDeri,temp);
+	RKAccumulate(K2,K2,tempDeri,ODEIVPCommon<modelClassName>::ht);
+	for (int i=0;i<ODEIVPCommon<modelClassName>::varNumber;i++)
 		temp[i]=var[i]+RKB31*K1[i]+RKB32*
 			K2[i];
-	(static_cast<modelClassType*>(this)->*(ODEIVPCommon<modelClassType>::ODEs))(tempDeri,temp);
-	RKAccumulate(K3,K3,tempDeri,ODEIVPCommon<modelClassType>::ht);
-	for (int i=0;i<ODEIVPCommon<modelClassType>::varNumber;i++)
+	(static_cast<modelClassName*>(this)->*(ODEIVPCommon<modelClassName>::ODEs))(tempDeri,temp);
+	RKAccumulate(K3,K3,tempDeri,ODEIVPCommon<modelClassName>::ht);
+	for (int i=0;i<ODEIVPCommon<modelClassName>::varNumber;i++)
 		temp[i]=var[i]+RKB41*K1[i]+RKB42*
 			K2[i]+RKB43*K3[i];
-	(static_cast<modelClassType*>(this)->*(ODEIVPCommon<modelClassType>::ODEs))(tempDeri,temp);
-	RKAccumulate(K4,K4,tempDeri,ODEIVPCommon<modelClassType>::ht);
-	for (int i=0;i<ODEIVPCommon<modelClassType>::varNumber;i++)
+	(static_cast<modelClassName*>(this)->*(ODEIVPCommon<modelClassName>::ODEs))(tempDeri,temp);
+	RKAccumulate(K4,K4,tempDeri,ODEIVPCommon<modelClassName>::ht);
+	for (int i=0;i<ODEIVPCommon<modelClassName>::varNumber;i++)
 		temp[i]=var[i]+RKB51*K1[i]+RKB52*
 			K2[i]+RKB53*K3[i]+RKB54*K4[i];
-	(static_cast<modelClassType*>(this)->*(ODEIVPCommon<modelClassType>::ODEs))(tempDeri,temp);
-	RKAccumulate(K5,K5,tempDeri,ODEIVPCommon<modelClassType>::ht);
-	for (int i=0;i<ODEIVPCommon<modelClassType>::varNumber;i++)
+	(static_cast<modelClassName*>(this)->*(ODEIVPCommon<modelClassName>::ODEs))(tempDeri,temp);
+	RKAccumulate(K5,K5,tempDeri,ODEIVPCommon<modelClassName>::ht);
+	for (int i=0;i<ODEIVPCommon<modelClassName>::varNumber;i++)
 		temp[i]=var[i]+RKB61*K1[i]+RKB62*
 			K2[i]+RKB63*K3[i]+RKB64*K4[i]+RKB65*K5[i];
-	(static_cast<modelClassType*>(this)->*(ODEIVPCommon<modelClassType>::ODEs))(tempDeri,temp);
-	RKAccumulate(K6,K6,tempDeri,ODEIVPCommon<modelClassType>::ht);
+	(static_cast<modelClassName*>(this)->*(ODEIVPCommon<modelClassName>::ODEs))(tempDeri,temp);
+	RKAccumulate(K6,K6,tempDeri,ODEIVPCommon<modelClassName>::ht);
 	
-	for (int i=0;i<ODEIVPCommon<modelClassType>::varNumber;i++)
+	for (int i=0;i<ODEIVPCommon<modelClassName>::varNumber;i++)
 		var[i]=var[i]+
 			RKC01*K1[i]+RKC02*K2[i]+RKC03*K3[i]+RKC04*K4[i]+
 			RKC05*K5[i]+RKC06*K6[i];
-	deltaTime = ODEIVPCommon<modelClassType>::ht;
+	deltaTime = ODEIVPCommon<modelClassName>::ht;
 
 //deciding next stepsize
-	for	(int i=0;i<ODEIVPCommon<modelClassType>::varNumber;i++)
+	for	(int i=0;i<ODEIVPCommon<modelClassName>::varNumber;i++)
 	{
 		tempDelta=abs(((RKC01-RKC11)*K1[i]+(RKC02-RKC12)*K2[i]+
 				(RKC03-RKC13)*K3[i]+(RKC04-RKC14)*K4[i]+
@@ -164,12 +164,12 @@ double RKmethod<modelClassType>::iterate(double * var)
 		if (maxDelta==0) maxDelta=tempDelta;
 		else if (tempDelta>maxDelta) maxDelta=tempDelta;
 	}
-	if (maxDelta>1.) ODEIVPCommon<modelClassType>::ht=ODEIVPCommon<modelClassType>::ht*pow(maxDelta,-0.2);
-	else ODEIVPCommon<modelClassType>::ht=ODEIVPCommon<modelClassType>::ht*pow(maxDelta,-0.25);
-	if (ODEIVPCommon<modelClassType>::ht>hMax && hMax!=0) 	ODEIVPCommon<modelClassType>::ht=hMax;
+	if (maxDelta>1.) ODEIVPCommon<modelClassName>::ht=ODEIVPCommon<modelClassName>::ht*pow(maxDelta,-0.2);
+	else ODEIVPCommon<modelClassName>::ht=ODEIVPCommon<modelClassName>::ht*pow(maxDelta,-0.25);
+	if (ODEIVPCommon<modelClassName>::ht>hMax && hMax!=0) 	ODEIVPCommon<modelClassName>::ht=hMax;
 
 //Normalize result
-	ODEIVPCommon<modelClassType>::Normalizer(var);
+	ODEIVPCommon<modelClassName>::Normalizer(var);
 
 	return deltaTime;
 }
