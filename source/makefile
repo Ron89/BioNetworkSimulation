@@ -3,4 +3,5 @@ ifeq ($(OUTPUT),0)
 endif
 
 main: 	main.cpp basicDef.h BCNetwork.h gillespie.h  modelLoader.h ODECommon.h ODEOperation.h rungeKutta.h marginalDistriExtractor.h coarseGrainedCommon.h coarseGrainedOperation.h
-	g++ -Wall -g -std=c++0x main.cpp -o ~/bin/$(OUTPUT) 
+	g++ -Wall -g -std=c++0x main.cpp -o $(OUTPUT) 
+#	g++ -Wall -g -std=c++0x main.cpp -o ~/bin/$(OUTPUT) 

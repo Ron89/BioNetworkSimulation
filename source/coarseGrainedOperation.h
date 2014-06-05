@@ -25,7 +25,6 @@ private:
 	bool trajectoryDefined;
 	long trajectorySize;
 	long trajectoryPointer;
-	fstream filePointer;
 
 	void assign( trajectory & dummy);
 public:
@@ -83,15 +82,17 @@ public:
 	{
 		time[trajectoryPointer]=time_alias;
 		for (int i=0; i<nComp; i++) 	comp[trajectoryPointer*nComp+i]=comp_alias[i];
+		trajectoryPointer++;
 	}
 
 // savings
 	void save( string & outputFileName, bool append=1)
 	{
+		ofstream filePointer;
 		if (append==1)
-			filePointer.open(outputFileName.c_str(), fstream::out | fstream::app);
+			filePointer.open(outputFileName.c_str(), ios::out | ios::app);
 		else
-			filePointer.open(outputFileName.c_str(), fstream::out | fstream::trunc);
+			filePointer.open(outputFileName.c_str(), ios::out | ios::trunc);
 		for (int i=0;i<trajectoryPointer;i++)
 		{
 			filePointer<<time[i]<<'\t';

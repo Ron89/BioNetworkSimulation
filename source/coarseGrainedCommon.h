@@ -268,7 +268,7 @@ int coarseGrainedModel<compType,updRateType>::reactantUpdate
 	for (int i=0;i<nReact;i++)
 	{
 		for (int j=0;j<react[i].updateNumber;j++)
-			comp_alias[react[i].updateSet[j]]+=compType(rate[i]*react[i].updateSet[j]);
+			comp_alias[react[i].updateSet[j]]+=compType(rate[i]*react[i].updateOrder[j]);
 	}
 	return 0;
 }
