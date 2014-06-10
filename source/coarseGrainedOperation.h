@@ -21,16 +21,16 @@ template<typename compType>
 struct trajectory
 {
 private:
-	int nComp;
 	bool trajectoryDefined;
 	long trajectorySize;
-	long trajectoryPointer;
 
 	void assign( trajectory & dummy);
 public:
+	int nComp;
+	long trajectoryPointer;
 	double * time;
 	compType * comp;
-	void reallocate(int nComp_alias, int trajectorySize)
+	void reallocate(int nComp_alias, unsigned long trajectorySize)
 	{
 		if (trajectoryDefined) 	erase();
 		time=new double [trajectorySize];

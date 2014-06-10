@@ -220,17 +220,363 @@ ODENetwork(vector<double> & initComp, vector<double> & inputRate,
 Well, basically it's self explined. It does two things. It calls the constructor that
 loads a biochemical network, and give `h0` an initial value given by user.
 
+## Coarse Grained Model module
+
+### Reaction network format
+
+Reaction network will be stored as a folder named by the network name. In the folder, there
+will be 2 files, `reaction` and `reactant`. 
+In `reactant`, initial values of all relative reactants is to be stored respectively. Number
+of values will be treated as the number of reactants.
+In `reaction`, all reactions in the network is to be stored respectively. Format of reactions
+is as followed:
+
+`code` `rate_0` `rate_1` `rate_2` `rate_3` `dep_0` `dep_1` `dep_2` `upd_num` `upd_0` `upd_1` `upd_2`
+
+where each `xxx` represent a value/group of values, either integer or decimal. Meaning of them are as following:
+
+name | meaning
+--- | ---
+`code`| `int`, used to identify reaction type 
+`rate_0~3`| `float`, store reaction constants. Depending on reaction type,<br> not all 4 of them are necessarily meaningful.
+`dep_0~2` | `int`, store reaction rate dependency on reactants. <br>Each int represents the serial of the respective reactant.<br> Depending on reaction type,<br> not all 3 of them are necessarily meaningful.
+`upd_num` | `int` ranged from `0~3`, number of reactants to be updated. 
+`upd_0~2` | `int <tab> double`, store the serial number and number of <br> molecules change by each instance of reaction. <br> Dependingon `upd_num`,<br> not all 3 of them are necessarily meaningful.
+
+
+Though not necessary, 
+it is recommended that one line is to store the information of one reaction. 
+
+In coarse grained model, we describe the reactions into 5 types. Those reaction
+types should be able to describe almost all reactions seen in reaction networks, the 
+following table is the storage format of each reaction type. 
+
+type | `code` | `rate_0~3` | `dep_0~2` | `upd_num` | `upd_0~2`
+--- | --- | --- | --- | --- | ---
+`*->..`|0|`k rand rand rand`|`rand rand rand`|`r. spec.` | `r. spec.`
+`A->..`|1|`k rand rand rand`|`A rand rand`|`r. spec.` | `r. spec.`
+`A+B->..`|2|`k rand rand rand`|`A B rand`|`r. spec.` | `r. spec.`
+MM kinetics|3|`k K rand rand`|`S E rand`|`r. spec.` | `r. spec.`
+Hill equa.|4|`k K n rand`|`P factor rand` | `r. spec.` | `r. spec.`
+
+Note:
+
+	1. 	Update reactants are case by case specific, thus not described here.
+
+	2. 	The four cases defined here are the four standard cases defined in 
+		`class coarseGrainedModel<compType, updRateType>`.
+
+ 	3. 	Hill equation usually follows some other reaction, here we define only the case
+		that combined protein being able to trigger some type `1` reaction with rate `k`.
+		The equilibrium constant of factor combining is `K`.
+
+	4. 	New reaction types can be added, as described in
+		`class coarseGrainedModel<compType, updRateType>`.
+
+### reaction structure
+
+defined in "coarseGrainedCommon.h"
+
+```cpp
+struct reaction
+```
+
+This structure is to store the information used to describe one reaction in coarse 
+grained models. 
+
+#### Public variable members
+
+Note: It is not suggested for reactions to be modified after loaded from file, but on
+necessary occations, the following will serve a guide on the format information stored
+in the structure.
+
+`type variable_name` | meaning
+--- | ---
+`int code` | code to identify the reaction type
+`double rate[MAXRATECOEF]` | rate coefficients of the reaction
+`int dependency[MAXDEPENDENCY]` | reactant dependency of the reaction rate
+`int updateNumber` | number of reactant to be updated 
+`int updateSet[MAXUPDSET]` | the set of reactants to be updated by the reaction
+`double updateOrder[MAXUPDSET]` | `updateOrder[i]` gives the amount of reactant change <br> for reactant `updateSet[i]`.
+
+Note: `updateOrder[i], updateOrder[i]` together is the ith instance of `upd_0~2` mentioned
+in section [Reaction network format](#reaction-network-format).
+
+#### Public function members
+
+```cpp
+reaction & operator=(const reaction & dummy);
+```
+
+The function will copy all values stored in dummy to the current `reaction`
+instance and return the pointer of current instance.
+
+---
+
+```cpp
+bool loadReaction(ifstream & reactionFile);
+```
+
+The function member will read 12 values from `reactionFile`. And store the information in
+the current `reaction` instance in a format described in section 
+[Reaction network format](#reaction-network-format). Returned value is the EOF flag
+of file pointer `reactionFile`.
+
+---
+
+```cpp
+void erase()
+```
+
+reset all values in this `reaction` instance to `0`.
+
+#### constructors
+
+```cpp
+reaction()
+reaction(const reaction & dummy)
+```
+
+The default constructor creates a all zero valued instance of `reaction`. The copy
+constructor copies all values stored in dummy to the current `reaction` instance.
+
+### trajectory structure template
+
+defined in "coarseGrainedOperation.h"
+
+```cpp
+template<typename compType>
+struct trajectory
+```
+
+This structure stores the trajectory of a certain network within a period of time.
+It is defined before or during a simulation. A saving member is also defined so that
+the data can be written into file whenever needed.
+
+#### Public variable members
+
+`type variable_name` | meaning
+--- | ---
+`int nComp` | number of reactants in the network.
+`double * time` | time points on the trajectory;
+`compType comp` | storage for number of each reactant at each time point.<br> Format: `comp[t*nComp+i]`.
+`long trajectoryPointer` | writing pointer, indicate the location to write <br> when using `void assign(int, long)` to write new data<br> or how many data values to save when using <br> `void save(string, bool)` to write data to disk.
+
+#### Public function members
+
+```cpp
+void append(double time_alias, compType * comp_alias);
+```
+
+Though it's OK for user to write trajectory data by themselves, this function will append
+data to the end of the last written data block, and push `trajectoryPointer` one unit further.
+
+---
+
+```cpp
+void save( string & outputFileName, bool append=1);
+```
+
+Saving the data currently written to the memory block to the point where `trajectoryPointer`
+indicates to a file, named with `outputFileName`. If `append=1` as default, the data will
+be appended at the end of the file. While if indicating `append=0`, the original file will
+be replaced without warning.
+
+---
+
+```cpp
+void erase();
+```
+
+This funtion will erase the current assigned memory if exists. `trajectoryPointer` will also
+point to 0.
+
+---
+
+```cpp
+void reallocate(int nComp_alias, unsigned long trajectorySize);
+```
+
+Erase(with `erase()`) currently assigned memory if exists, and reallocate memory for `*comp` 
+with size`nComp_alias*trajectorySize`,
+and `*time` with size `trajectorySize`. All values of newly assigned memory will be zero.
+
+
+
+#### Constructors
+
+```cpp
+trajectory();
+trajectory(int nComp_alias, unsigned long trajectorySize_alias);
+trajectory(trajectory<compType> & dummy);
+```
+
+Default constructor create an empty `trajectory` structure. To use, user must first 
+use `void reallocate(int nComp_alias, unsigned long trajectorySize)` defined as a public function
+member to allocate memory for the trajectory.
+
+`trajectory(int nComp_alias, unsigned long trajectorySize_alias);` automatically calls
+`void rellocate(int, unsigned long)`, thus the datablock will be ready for all operations
+when this constructor is used.
+
+Copy constructor will create an exact duplicate of dummy `trajectory`.
+
+### coarse grained model class template.
+
+defined in "coarseGrainedCommon.h"
+
+```cpp
+template<typename compType, typename updRateType>
+class coarseGrainedModel;
+```
+
+This class template defines a basic structure to store information of a coarse grained
+biochemical network. It also provides basic reaction rate determination method and 
+reactant update method. `compType` is the type for reactant amounts, can be both `int`
+or `double`. `updRateType` is the type of `* rate` used when determining the amount of
+reactant to be updated. It's suggested to be `double`. But other variable type is still
+OK.
+
+#### Public variable members
+
+`type variable_name` | meaning
+--- | ---
+`int nComp` | number of different reactants in the network
+`compType * comp` | datablock to store amount of each reactant of current time
+`int nReact` | number of reactions in the network.
+`reaction * react` | an array to store all reactions in the network.
+`double time`| current time
+`double lastSavedTime`| last saved time point
+`double stoppingTime`| time when simulation ends
+`double saveTimeInterval`| time interval between two saving points
+
+#### Public function members
+
+```cpp
+virtual int modelLoading(string & modelName);
+```
+
+Load model from a folder named `modelName`. 
+
+---
+
+```cpp
+	int rateDetermine(double * rate, compType * comp_alias);
+	int rateDetermine(double * rate);
+```
+
+`int rateDetermine(double *, compType *)` use the reactant information stored in
+`* comp_alias` to calculate the reaction rate. Calculated reaction rate is released
+in array pointed by `* rate`. For `int rateDetermine(double *)`, reactant 
+information used is the one pointed by `* comp`.
+
+---
+
+```cpp
+int reactantUpdate(compType * comp_alias, const updRateType * rate);
+int reactantUpdate(const updRateType * rate);
+```
+
+`int reactantUpdate(compType *, const updRateType *)` will use `*rate` times the
+update information stored in each reaction to update reactant amounts stored in
+`* comp_alias`. In `int reactantUpdate(const updRateType *)`, the target reactant
+amounts storage would be `* comp`.
+
+---
+
+```cpp
+void reset()
+```
+Reset data pointed by `*comp` with the condition loaded from model file. And setting
+`time` and `lastSavedTime` to `0`.
+
+---
+
+```cpp
+void assign(const coarseGrainedModel & dummy)
+```
+
+Duplicate EVERYTHING from the dummy into the current `coarseGrainedModel`.
+
+#### constructors
+
+```cpp
+coarseGrainedModel();
+coarseGrainedModel(string & modelName);
+coarseGrainedModel(const coarseGrainedModel<compType, updRateType> & dummy);
+```
+
+Default constructor won't create a workable instance. User need to load a model from file
+with `int modelLoading(string &)` before any other operation. 
+
+`coarseGrainedModel(string &)` loads a model from
+file automatically and creates a working instance. 
+
+Copy constructor duplicate the dummy `coarseGrainedModel` into a new instance.
+
+### Coarse Grained Stochastic class
+
+defined in "coarseGrainedOperation.h"
+
+```cpp
+class coarseGrainedStochastic: public coarseGrainedModel<int,double> , 
+							   public gillespie<coarseGrainedStochastic>
+```
+
+This class is based on coarseGrainedModel, using gillespie module for simulation. 
+
+#### public function member
+
+```cpp
+void reset();
+void assign(const coarseGrainedStochastic & dummy);
+```
+
+These two function members are inherited from `coarseGrainedModel`.
+
+---
+
+```cpp
+void simulate(string fileName);
+```
+
+Simulate with gillespie module. The resulting data will be put into a file named by
+`fileName`. This is a temporary design, and will be replaced by other modules when
+multi-thread simulation steps in.
+
+#### Constructor
+
+```cpp
+coarseGrainedStochastic(string & modelName, double stoppingTime_alias,
+		double saveTimeInterval_alias):
+	coarseGrainedModel<int,double>(modelName), gillespie<coarseGrainedStochastic>
+											   (nReact,
+												&coarseGrainedModel::rateDetermine,
+												&coarseGrainedModel::reactantUpdate);
+coarseGrainedStochastic(coarseGrainedStochastic & dummy):
+	coarseGrainedModel<int,double>(dummy),
+	gillespie<coarseGrainedStochastic>(nReact,
+			&coarseGrainedModel::rateDetermine,
+			&coarseGrainedModel::reactantUpdate)
+```
+
+Aside of the behavior inherited from the base classes, the constructors shown above will
+take `stoppingTime` and `saveTimeInterval` information from either user input or `dummy`.
+
 ## Algorithms
 
 The following classes are defined as algorithms used for biochemical network related
-simulation
+simulation.
 
-### Gillespie Algorithm
+### Outdated Gillespie Algorithm(gillespieStandAlone)
 
-defined in "gillespie.h"
+defined in "gillespieStandAlone.h"
+Note: This module used to be called `gillespie`. However, the stand alone design is outdated
+and is already replaced by the new `gillespie` class. Old version is thus changed into 
+`gillespieStandAlone` for reference purpose.
 
 ```cpp
-class gillespie: public BCNetwork<int, double, int>
+class gillespieStandAlone: public BCNetwork<int, double, int>
 ```
 
 This class defines both the algorithm and the simulation methods. Gillespie algorithm 
@@ -276,7 +622,7 @@ This reset function reserves the function of `BCNetwork::reset()`. It also resto
 #### Constructor/Destructor
 
 ```cpp
-gillespie(vector<int> & initComp, vector<double> & inputRate,
+gillespieStandAlone(vector<int> & initComp, vector<double> & inputRate,
         int * inputRateMatrix, int * inputUpdateMatrix,
         double runTime ,bool sMethod=0, double saveInterval=1)
 ```
@@ -297,6 +643,55 @@ inline double popRandom();
 
 Should other random number generator be used instead the current one. These two 
 member functions can be changed accordingly.
+
+### Gillespie Algorithm class template
+
+defined in "gillespie.h"
+
+```cpp
+template<typename modelClassName>
+class gillespie
+```
+
+This module is built as an stripped version of `gillespieStandAlone` class.
+It works the same way as `rungeKutta` class template. A model using this module
+must inherit the class template, feed the class template an rate determining 
+function member to `int modelClassName::*rateDetermine_alias(double *)`. And a reactant
+updating function member to `int (modelClassName::*reactantUpdate_alias)(const double *)`.
+The algorithm performs a single iteration of Gillespie Algorithm, deciding the time
+step size of the current iteration and which reaction to take place.
+
+Note that
+
+Member function name | Requirements
+--- | ---
+`int modelClassName::*rateDetermine_alias(double *)`| supplied by model, using model's own reactant information<br> to calculate the reaction rate for each reaction.<br> The rate will be pass to the algorithm as a double type pointer<br> given as the function argument.
+`int (modelClassName::*reactantUpdate_alias)(const double *)` | supplied by model, algorithm will pass the number(1 or 0)<br>of each reaction taking places <br> during the time interval as a constant double type pointer.<br> The function member will use the array multiplying<br> the updating part of the reaction. Resulting value<br> will be added onto the current reactant amount<br> stored in model.
+
+#### Public function member
+
+```cpp
+double iterate();
+```
+
+The function will do one iteration of algorithm. Reactant amounts will be 
+updated by `int reactantUpdate(const double *)`, while the time step is to
+be returned as a double type value.
+
+#### Constructors
+
+```cpp
+gillespie();
+gillespie(int reactionNumber_alias, int (modelClassName::*rateDetermine_alias)(double *),
+		int (modelClassName::*reactantUpdate_alias)(const double *))	
+```
+
+Default constructor does nothing. Not used in most scenario.
+
+The second constructor is what is mostly used when loading with Gillespie algorithm,
+reaction number and the two function member pointer introduced earlier must be provided
+when inheriting this algorithm module.
+
 
 ### ODEIVPCommon Class Template
 

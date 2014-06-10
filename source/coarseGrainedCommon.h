@@ -102,11 +102,13 @@ private:
 	void generateModel();
 	void eraseModel();
 
+// backup comp, for reset use
+	compType * compBackup;
+
 public:
 // reactants and reactions;
 	int nComp;
 	compType * comp;
-	compType * compBackup;
 	int nReact;
 	reaction * react;
 
@@ -150,6 +152,10 @@ public:
 //	}
 	
 // constructor & destructor
+	coarseGrainedModel()
+	{
+		initState=0;
+	}
 	coarseGrainedModel(string & modelName)
 	{
 		initState=0;
