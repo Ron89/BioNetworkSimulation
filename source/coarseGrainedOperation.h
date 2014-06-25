@@ -77,6 +77,12 @@ public:
 		return *this;
 	}
 
+// destructor
+	~trajectory()
+	{
+		erase();
+	}
+
 // operations
 	void append(double time_alias, compType * comp_alias)
 	{
@@ -161,6 +167,7 @@ public:
 	}
 	~coarseGrainedStochastic()
 	{
+		eraseModel();
 	}
 
 // function member
@@ -169,9 +176,6 @@ public:
 
 void coarseGrainedStochastic::simulate(string fileName)
 {
-	double currentProgress=0;
-	double timeStart=time;
-	double stage=0;
 	trajectory<int> trajStorage(nComp, int((stoppingTime-time)/saveTimeInterval)+1);
 	while (time<stoppingTime)
 	{
@@ -181,14 +185,8 @@ void coarseGrainedStochastic::simulate(string fileName)
 			trajStorage.append(time,comp);
 			lastSavedTime=time;
 		}
-		currentProgress=(time-timeStart)/(stoppingTime-timeStart);
-		if (currentProgress>stage)
-		{
-			cout<<"progress: "<<currentProgress<<endl;
-			stage+=0.01;
-		}
 	}
-	trajStorage.save(fileName);
+	trajStorage.save(fileName,0);
 }
 
 

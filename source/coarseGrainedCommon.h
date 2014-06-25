@@ -98,10 +98,6 @@ private:
 // Flags
 	bool initState;
 
-// allocate and free memory
-	void generateModel();
-	void eraseModel();
-
 // backup comp, for reset use
 	compType * compBackup;
 
@@ -117,6 +113,10 @@ public:
 	double lastSavedTime; 		// last saved time point
 	double stoppingTime; 		// time when simulation ends
 	double saveTimeInterval; 	// time interval between two saving points
+
+// allocate and free memory
+	void generateModel();
+	void eraseModel();
 
 // Model loading
 	virtual int modelLoading(string & modelName);
