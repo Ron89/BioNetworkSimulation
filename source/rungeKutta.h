@@ -54,7 +54,7 @@ public:
 	}
 	RKmethod(int sysSize,
 		double initTimeStep, 
-		void (modelClassName::*targetODEs)(double *, double *),double maxTimeStep=0) :
+		void (modelClassName::*targetODEs)(double *, double *), double maxTimeStep=0) :
 		ODEIVPCommon<modelClassName>::ODEIVPCommon(sysSize, initTimeStep, targetODEs)
 	{
 		hMax=maxTimeStep;
