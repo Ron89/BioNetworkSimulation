@@ -23,10 +23,10 @@ private:
 
 // Required parameter 
 	int reactionNumber;
-	int (modelClassName::*rateDetermine)(double *); 
+	int (modelClassName::*rateDetermine)(double *, int *); 
 								// provided by model, first argument is the address for
 								// output reaction rates of each reaction.
-	int (modelClassName::*reactantUpdate)(const double *); 	
+	int (modelClassName::*reactantUpdate)(int *, double *); 	
 								// second would be number of incicences for
 								// each reactions. First would be the output
 
@@ -40,23 +40,23 @@ public:
 //		dsfmt_init_gen_rand(&dsfmt, seed);
 	}
 
+// algorithm functional parts
+	double iterate(int * comp_alias);
+
 // constructor
 	gillespie(){}
 
-	gillespie(int reactionNumber_alias, int (modelClassName::*rateDetermine_alias)(double *),
-			int (modelClassName::*reactantUpdate_alias)(const double *))	
+	gillespie(int reactionNumber_alias, int (modelClassName::*rateDetermine_alias)(double *, int *),
+			int (modelClassName::*reactantUpdate_alias)(int *, double *))	
 	{
 		reactionNumber=reactionNumber_alias;
 		rateDetermine=rateDetermine_alias;
 		reactantUpdate=reactantUpdate_alias;
 	}
-
-// algorithm functional parts
-	double iterate();
 };
 
 template<typename modelClassName>
-double gillespie<modelClassName>::iterate()
+double gillespie<modelClassName>::iterate(int * comp_alias)
 {
 	double r1, r2;
 	
@@ -69,7 +69,7 @@ double gillespie<modelClassName>::iterate()
 	r1=popRandom();
 	lambdaSig[0]=0;
 
-	(static_cast<modelClassName*>(this)->*rateDetermine)(rate);
+	(static_cast<modelClassName*>(this)->*rateDetermine)(rate, comp_alias);
 	
 	for (int i=1;i<=reactionNumber;i++)
 	{
@@ -99,7 +99,8 @@ double gillespie<modelClassName>::iterate()
 		else 	ll=templ;
 	}
 	rate[ll]=1;
-	(static_cast<modelClassName*>(this)->*reactantUpdate)(rate);
+	(static_cast<modelClassName*>(this)->*reactantUpdate)(comp_alias, rate);
+
 	delete [] rate;
 	delete [] lambdaSig;
 

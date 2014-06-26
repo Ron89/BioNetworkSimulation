@@ -8,17 +8,7 @@
 #include "basicDef.h"
 #include "ODECommon.h"
 
-//// coefficients for Multiple-Value method
-//#define MV4R1 9./24.
-//#define MV4R3 11./12.
-//#define MV4R4 1./3.
-//#define MV4R5 1./24.
-
-#define MAXITER 10000
-
 using namespace std;
-
-
 
 template<typename modelClassName>
 class RKmethod: public ODEIVPCommon<modelClassName>
@@ -35,6 +25,7 @@ private:
 	{
 		for (int i=0;i<ODEIVPCommon<modelClassName>::varNumber;i++)	fState[i]=iState[i]+step*deri[i];
 	}
+
 // constructor and destructor for the dynamically allocated memory for the algorithm
 // Constructor should be called after the network is properly defined
 	void constructor();
@@ -48,6 +39,16 @@ public:
 	void reset()
 	{
 		ODEIVPCommon<modelClassName>::ht=initTimeStep_backup;
+	}
+
+// assign
+	void assign(const RKmethod<modelClassName> dummy)
+	{
+		ODEIVPCommon<modelClassName>::assign(dummy);
+		destructor();
+		constructor();
+		hMax=dummy.hMax;
+		initTimeStep_backup=dummy.initTimeStep_backup;
 	}
 
 public:

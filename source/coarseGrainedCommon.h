@@ -22,33 +22,86 @@ public:
 	int updateNumber;
 	int updateSet[MAXUPDSET];
 	double updateOrder[MAXUPDSET];
-	
+
 	bool loadReaction(ifstream & reactionFile);
 
 // constructor
-	reaction()
-	{
-		erase();
-	}
+	reaction();
 
 // copy constructor
-	reaction(const reaction & dummy)
-	{
-		assign(dummy);
-	}
+	reaction(const reaction & dummy);
 
 // operators
-	reaction & operator=(const reaction & dummy)
-	{
-		if (this!=&dummy) 	assign(dummy);
-		return *this;
-	}
-	void scale(double eta_c_alias, double eta_t_alias)
-	{
-		rate[0]*=pow(eta_c_alias,(code==0?1:(code==2?-1:0)))*pow(eta_t_alias,-1);
-		rate[1]*=pow(eta_c_alias,((code==3||code==4)?1:0));
-	}
+	reaction & operator=(const reaction & dummy);
+	void scale(double eta_c_alias, double eta_t_alias);
 	void erase();
+};
+
+template<typename compType, typename updRateType>
+class coarseGrainedModel
+{
+/* This module and other objects based on this module is designed for coarse grained modelling.
+ * Other than elementary-reaction-based modeling, this type of model falls into undetermined
+ * number of stereotypes: elementary reaction types, MM kinetics, hill-equation, etc. based
+ * on ways of simplification. Thus for these modules, definition of its members are also more
+ * open to change. 
+ */
+private:
+// Flags
+	bool initState;
+
+// backup comp, for reset use
+	compType * compBackup;
+
+// allocate and free memory, only used when constructing/ destructing the model.
+	void generateModel();
+	void eraseModel();
+
+public:
+// reactants and reactions;
+	int nComp;
+	compType * comp;
+	int nReact;
+	reaction * react;
+
+// timing related definition;
+	double time; 				// current time
+	double lastSavedTime; 		// last saved time point
+	double stoppingTime; 		// time when simulation ends
+	double saveTimeInterval; 	// time interval between two saving points
+
+// Model loading
+	int modelLoading(string & modelName);
+
+// reaction rate determination
+	int rateDetermine(double * rate, compType * comp_alias);
+// in specific modules, other reaction types might be defined with additional routines.
+// This function is used to add those reaction routines in.
+	virtual double extendedCases(reaction currentReaction, compType * comp_alias){
+		return 0;
+	}
+
+// in case the reactant level used to calculate rate is the current reactant level.
+	inline int rateDetermine(double * rate);
+	
+// update comp based on a given rate
+// 		* in deterministic case, use updRateType=double;
+// 		* in gillespie algorithm, use updRateType=int;
+	int reactantUpdate(compType * comp_alias, updRateType * rate);
+	int reactantUpdate(updRateType * rate);
+	
+// constructor & destructor
+//	coarseGrainedModel()
+	coarseGrainedModel(string & modelName);
+	coarseGrainedModel(const coarseGrainedModel<compType, updRateType> & dummy);
+	~coarseGrainedModel();
+
+//reset
+	void reset();
+
+//operator assign, duplicate all model information from model dummy;
+	void assign(const coarseGrainedModel<compType, updRateType> & dummy);
+	coarseGrainedModel & operator=(const coarseGrainedModel<compType, updRateType> & dummy);
 };
 
 void reaction::assign(const reaction & dummy)
@@ -91,111 +144,28 @@ void reaction::erase()
 	}
 }
 
-template<typename compType, typename updRateType>
-class coarseGrainedModel
-{
-/* This module and other objects based on this module is designed for coarse grained modelling.
- * Other than elementary-reaction-based modeling, this type of model falls into undetermined
- * number of stereotypes: elementary reaction types, MM kinetics, hill-equation, etc. based
- * on ways of simplification. Thus for these modules, definition of its members are also more
- * open to change. 
- */
-private:
-// Flags
-	bool initState;
-
-// backup comp, for reset use
-	compType * compBackup;
-
-public:
-// reactants and reactions;
-	int nComp;
-	compType * comp;
-	int nReact;
-	reaction * react;
-
-// timing related definition;
-	double time; 				// current time
-	double lastSavedTime; 		// last saved time point
-	double stoppingTime; 		// time when simulation ends
-	double saveTimeInterval; 	// time interval between two saving points
-
-// allocate and free memory
-	void generateModel();
-	void eraseModel();
-
-// Model loading
-	virtual int modelLoading(string & modelName);
-
-// reaction rate determination
-	int rateDetermine(double * rate, compType * comp_alias);
-
-// in specific modules, other reaction types might be defined with additional routines.
-// This function is used to add those reaction routines in.
-	virtual double extendedCases(reaction currentReaction, compType * comp_alias){
-		return 0;
+reaction::reaction()
+	{
+		erase();
 	}
 
-// in case the reactant level used to calculate rate is the current reactant level.
-	inline int rateDetermine(double * rate)
+reaction::reaction(const reaction & dummy)
 	{
-		return rateDetermine(rate, comp);	
-	}
-	
-// update comp based on a given rate
-// 		* in deterministic case, use updRateType=double;
-// 		* in gillespie algorithm, use updRateType=int;
-	int reactantUpdate(compType * comp_alias, const updRateType * rate);
-	int reactantUpdate(const updRateType * rate)
-	{
-		return reactantUpdate(comp, rate);
-	}
-
-//	inline void reactantUpdate(compType * comp_alias, int react_id)
-//	{
-//		for (int j=0;j<react[react_id].updateNumber;j++)
-//			comp_alias[react[react_id].updateSet[j]]+=compType(*react[react_id].updateSet[j]);
-//	}
-	
-// constructor & destructor
-	coarseGrainedModel()
-	{
-		initState=0;
-	}
-	coarseGrainedModel(string & modelName)
-	{
-		initState=0;
-		modelLoading(modelName);
-	}
-	coarseGrainedModel(const coarseGrainedModel<compType, updRateType> & dummy)
-	{
-		initState=0;
 		assign(dummy);
 	}
-	~coarseGrainedModel()
+
+reaction & reaction::operator=(const reaction & dummy)
 	{
-		eraseModel();
+		if (this!=&dummy) 	assign(dummy);
+		return *this;
 	}
 
-//reset
-	void reset()
+void reaction::scale(double eta_c_alias, double eta_t_alias)
 	{
-		for (int i=0;i<nComp;i++) 	comp[i]=compBackup[i];
-		time=lastSavedTime=0;
+		rate[0]*=pow(eta_c_alias,(code==0?1:(code==2?-1:0)))*pow(eta_t_alias,-1);
+		rate[1]*=pow(eta_c_alias,((code==3||code==4)?1:0));
 	}
 
-//operator assign, duplicate all model information from model dummy;
-	void assign(const coarseGrainedModel<compType, updRateType> & dummy);
-	coarseGrainedModel & operator=(const coarseGrainedModel<compType, updRateType> & dummy)
-	{
-		if (this == &dummy) return *this;
-		else
-		{
-			assign(dummy);
-			return *this;
-		}
-	}
-};
 
 template<typename compType, typename updRateType>
 void coarseGrainedModel<compType, updRateType>::assign
@@ -272,10 +242,15 @@ int coarseGrainedModel<compType,updRateType>::rateDetermine(double * rate, compT
 	return 0;
 }
 
+template<typename compType, typename updRateType>
+int coarseGrainedModel<compType,updRateType>::rateDetermine(double * rate)
+	{
+		return rateDetermine(rate, comp);	
+	}
 
 template<typename compType, typename updRateType>
 int coarseGrainedModel<compType,updRateType>::reactantUpdate
-(compType * comp_alias, const updRateType * rate)
+(compType * comp_alias, updRateType * rate)
 {
 	for (int i=0;i<nReact;i++)
 	{
@@ -283,6 +258,13 @@ int coarseGrainedModel<compType,updRateType>::reactantUpdate
 			comp_alias[react[i].updateSet[j]]+=compType(rate[i]*react[i].updateOrder[j]);
 	}
 	return 0;
+}
+
+template<typename compType, typename updRateType>
+int coarseGrainedModel<compType,updRateType>::reactantUpdate
+(updRateType * rate)
+{
+	return reactantUpdate(comp, rate);
 }
 
 template<typename compType, typename updRateType>
@@ -324,6 +306,52 @@ int coarseGrainedModel<compType,updRateType>::modelLoading(string & modelName)
 		reactantBuffer.pop();
 	}
 	return 0;
+}
+
+//template<typename compType, typename updRateType>
+//coarseGrainedModel<compType,updRateType>::coarseGrainedModel()
+//{
+//	initState=0;
+//}
+
+template<typename compType, typename updRateType>
+coarseGrainedModel<compType,updRateType>::coarseGrainedModel(string & modelName)
+{
+	initState=0;
+	modelLoading(modelName);
+}
+
+template<typename compType, typename updRateType>
+coarseGrainedModel<compType,updRateType>::coarseGrainedModel
+(const coarseGrainedModel<compType, updRateType> & dummy)
+{
+	initState=0;
+	assign(dummy);
+}
+
+template<typename compType, typename updRateType>
+coarseGrainedModel<compType,updRateType>::~coarseGrainedModel()
+{
+	eraseModel();
+}
+
+template<typename compType, typename updRateType>
+void coarseGrainedModel<compType,updRateType>::reset()
+{
+	for (int i=0;i<nComp;i++) 	comp[i]=compBackup[i];
+	time=lastSavedTime=0;
+}
+
+template<typename compType, typename updRateType>
+coarseGrainedModel<compType,updRateType> & coarseGrainedModel<compType,updRateType>::
+operator=(const coarseGrainedModel<compType, updRateType> & dummy)
+{
+	if (this == &dummy) return *this;
+	else
+	{
+		assign(dummy);
+		return *this;
+	}
 }
 
 

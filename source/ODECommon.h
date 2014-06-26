@@ -27,12 +27,16 @@ protected:
 public:
 	double ht;
 
+	void assign(ODEIVPCommon<modelClassType> dummy)
+	{
+		ht=dummy.ht;
+		varNumber=dummy.varNumber;
+	}
+
 	void (modelClassType::*ODEs)(double *, double *);
 	int (*Normalizer)(double *);
 
-	ODEIVPCommon()
-	{
-	}
+	ODEIVPCommon(){}
 	ODEIVPCommon(int sysSize,
 		double initTimeStep,
 		void (modelClassType::*targetODEs)(double *, double *))
