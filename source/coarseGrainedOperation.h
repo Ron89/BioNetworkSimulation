@@ -3,6 +3,7 @@
 
 #include"coarseGrainedCommon.h"
 #include"gillespie.h"
+#include"rungeKutta.h"
 #include<fstream>
 #include<string>
 #include<iostream>
@@ -41,6 +42,7 @@ public:
 			for (int j=0;j<nComp_alias;j++) 	comp[i*nComp_alias+j]=0;
 		}
 		trajectoryDefined=1;
+		trajectoryPointer=0;
 	}
 	void erase()
 	{
@@ -125,6 +127,8 @@ void trajectory<compType>::assign( trajectory<compType> & dummy)
 	}
 }
 
+// --------------------------
+
 class coarseGrainedStochastic: public coarseGrainedModel<int,double> , 
 							   public gillespie<coarseGrainedStochastic>
 {
@@ -189,5 +193,98 @@ void coarseGrainedStochastic::simulate(string fileName)
 	trajStorage.save(fileName,0);
 }
 
+class coarseGrainedDeterministic: 	public coarseGrainedModel<double,double>,
+									public RKmethod<coarseGrainedDeterministic>
+{
+private:
+	bool initState;
+	double * reactionRate;
 
+// allocate and free memory	
+	void generateModel()
+	{
+		if (initState) 	eraseModel();
+		reactionRate=new double [nReact];
+		initState=1;
+	}
+	void eraseModel()
+	{
+		if (initState)
+		{
+			delete [] reactionRate;
+		}
+		initState=0;
+	}
+
+public:
+// update reset function
+	void reset()
+	{
+		coarseGrainedModel<double,double>::reset();
+		RKmethod<coarseGrainedDeterministic>::reset();
+	}
+
+// update assign function (incomplete, as algorithm model don't have assign function defined currently)
+//	void assign(const coarseGrainedDeterministic & dummy)
+//	{
+//		coarseGrainedModel<int,double>::assign(dummy);
+//		generateModel();
+//		for (int i=0;i<nReact;i++) 	reactionRate[i]=dummy.reactionRate[i];
+//	}
+
+	void modelODE(double * timeDeri_alias, double * comp_alias)
+	{
+		rateDetermine(reactionRate, comp_alias);
+		for (int i=0;i<nComp;i++) 	timeDeri_alias[i]=0;
+		reactantUpdate(timeDeri_alias, reactionRate);
+	}
+
+// constructors
+// load from file 
+	coarseGrainedDeterministic(string & modelName, double initTimeStep_alias, double maxTimeStep_alias,
+			double stoppingTime_alias,
+			double saveTimeInterval_alias):
+		coarseGrainedModel<double,double>(modelName), RKmethod<coarseGrainedDeterministic>
+												   (nComp, initTimeStep_alias, 
+													&coarseGrainedDeterministic::modelODE, maxTimeStep_alias)
+	{
+		initState=0;
+		generateModel();
+		stoppingTime=stoppingTime_alias;
+		saveTimeInterval=saveTimeInterval_alias;
+		reset();
+	}
+	
+// load from same type of model (incomplete, as algorithm doesn't have equivalent copy constructor)
+//	coarseGrainedDeterministic(coarseGrainedStochastic & dummy):
+//		coarseGrainedModel<int,double>(dummy),
+//		gillespie<coarseGrainedStochastic>(nReact,
+//				&coarseGrainedModel::rateDetermine,
+//				&coarseGrainedModel::reactantUpdate)
+//	{
+//	//	assign(dummy);
+//	}
+	~coarseGrainedDeterministic()
+	{
+		eraseModel();
+	}
+
+// function member
+	void simulate(string fileName);
+};
+
+void coarseGrainedDeterministic::simulate(string fileName)
+{
+	trajectory<double> trajStorage(nComp, int((stoppingTime-time)/saveTimeInterval)+1);
+	while (time<stoppingTime)
+	{
+		time+=iterate(comp);
+		if ((time-lastSavedTime)>=saveTimeInterval)
+		{
+			trajStorage.append(time,comp);
+			lastSavedTime=time;
+		}
+	}
+	trajStorage.save(fileName,0);
+}
 #endif

@@ -13,12 +13,6 @@ class gillespie
 private:
 // random generator
 //	dsfmt_t dsfmt;
-	inline void reseedRandom(int seed)
-	{
-		srand48(seed);
-//		randGen.seed(seed);
-//		dsfmt_init_gen_rand(&dsfmt, seed);
-	}
 
 	inline double popRandom()
 	{
@@ -37,6 +31,15 @@ private:
 								// each reactions. First would be the output
 
 public:
+
+// random reseeder
+	inline void reseedRandom(int seed)
+	{
+		srand48(seed);
+//		randGen.seed(seed);
+//		dsfmt_init_gen_rand(&dsfmt, seed);
+	}
+
 // constructor
 	gillespie(){}
 

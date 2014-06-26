@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <stack>
+#include <cmath>
 #include "basicDef.h"
 
 using namespace std;
@@ -41,6 +42,11 @@ public:
 	{
 		if (this!=&dummy) 	assign(dummy);
 		return *this;
+	}
+	void scale(double eta_c_alias, double eta_t_alias)
+	{
+		rate[0]*=pow(eta_c_alias,(code==0?1:(code==2?-1:0)))*pow(eta_t_alias,-1);
+		rate[1]*=pow(eta_c_alias,((code==3||code==4)?1:0));
 	}
 	void erase();
 };

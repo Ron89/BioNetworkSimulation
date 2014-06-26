@@ -25,6 +25,7 @@ class RKmethod: public ODEIVPCommon<modelClassName>
 {
 public:
 	double hMax; 			//setup a maximum value for timestep
+	double initTimeStep_backup;
 private:
 	double * K1, * K2,* K3, * K4, * K5, * K6, * temp, * tempDeri;
 	bool iteratorPrepared; 
@@ -44,6 +45,10 @@ public:
 // the time and
 // value of the next time step.
 	double iterate(double * var);
+	void reset()
+	{
+		ODEIVPCommon<modelClassName>::ht=initTimeStep_backup;
+	}
 
 public:
 //constructor and destructor
@@ -54,9 +59,10 @@ public:
 	}
 	RKmethod(int sysSize,
 		double initTimeStep, 
-		void (modelClassName::*targetODEs)(double *, double *),double maxTimeStep=0) :
+		void (modelClassName::*targetODEs)(double *, double *), double maxTimeStep=0) :
 		ODEIVPCommon<modelClassName>::ODEIVPCommon(sysSize, initTimeStep, targetODEs)
 	{
+		initTimeStep_backup=initTimeStep;
 		hMax=maxTimeStep;
 		iteratorPrepared=0;
 		ODEIVPCommon<modelClassName>::Normalizer=blankNormalizer;
@@ -69,6 +75,7 @@ public:
 		ODEIVPCommon<modelClassName>::ODEIVPCommon(sysSize, initTimeStep, 
 				targetODEs,targetNormalizer)
 	{
+		initTimeStep_backup=initTimeStep;
 		hMax=maxTimeStep;
 		iteratorPrepared=0;
 		constructor();

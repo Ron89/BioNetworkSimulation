@@ -716,7 +716,7 @@ names.
 --- | ---
 `double ht` | current stepsize. For adaptive stepsize algorithms, this value is usually different from `ODENetwork::h0`
 `int varNumber` | number of variables/ODEs.
-`void (modelClassType::*ODEs)(double *, double *)` | member function pointer. Used to point to ODEs function provided by the specific model.
+`void (modelClassType::*ODEs)(double *, double *)` | member function pointer. Used to point to ODEs function provided by the specific model. First `double*` point to the returned time derivation, second `double*` points to where the reactants are stored.
 `int (*Normalizer)(double *)` | a normalizer, usually need to be specified for each different problem. Thus by definition it's not bound to the member class. Note that this is a function pointer, only static function can be pointed by it.
 
 #### Public function members

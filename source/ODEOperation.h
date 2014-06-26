@@ -21,9 +21,9 @@ public:
 
 	ODESimulate(vector<double> & initComp, vector<double> & inputRate,  
 			int * inputRateMatrix, int * inputUpdateMatrix, 
-			double initTimeStep, double runTime, double saveInterval) : 
+			double initTimeStep, double maxTimeStep_alias, double runTime, double saveInterval) : 
 		ODENetwork(initComp, inputRate, inputRateMatrix, inputUpdateMatrix,
-				initTimeStep), RKmethod<ODESimulate>(nComp, h0, &ODESimulate::ODETimeDeri)
+				initTimeStep), RKmethod<ODESimulate>(nComp, h0, &ODESimulate::ODETimeDeri, maxTimeStep_alias)
 	{
 		stoppingTime=runTime;
 		saveTimeInterval=saveInterval;
