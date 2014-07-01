@@ -256,8 +256,8 @@ type | `code` | `rate_0~3` | `dep_0~2` | `upd_num` | `upd_0~2`
 `*->..`|0|`k rand rand rand`|`rand rand rand`|`r. spec.` | `r. spec.`
 `A->..`|1|`k rand rand rand`|`A rand rand`|`r. spec.` | `r. spec.`
 `A+B->..`|2|`k rand rand rand`|`A B rand`|`r. spec.` | `r. spec.`
-MM kinetics|3|`k K rand rand`|`S E rand`|`r. spec.` | `r. spec.`
-Hill equa.|4|`k K n rand`|`P factor rand` | `r. spec.` | `r. spec.`
+Hill equa.|3|`k K n rand`|`P factor rand` | `r. spec.` | `r. spec.`
+MM kinetics|4|`k K rand rand`|`S E rand`|`r. spec.` | `r. spec.`
 
 Note:
 
