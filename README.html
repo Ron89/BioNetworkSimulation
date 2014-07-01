@@ -277,18 +277,18 @@ BCNetwork(vector&lt;compType&gt; &amp; initComp, vector&lt;rateType&gt; &amp; in
 <td align="left"><code>r. spec.</code></td>
 </tr>
 <tr class="even">
-<td align="left">MM kinetics</td>
+<td align="left">Hill equa.</td>
 <td align="left">3</td>
-<td align="left"><code>k K rand rand</code></td>
-<td align="left"><code>S E rand</code></td>
+<td align="left"><code>k K n rand</code></td>
+<td align="left"><code>P factor rand</code></td>
 <td align="left"><code>r. spec.</code></td>
 <td align="left"><code>r. spec.</code></td>
 </tr>
 <tr class="odd">
-<td align="left">Hill equa.</td>
+<td align="left">MM kinetics</td>
 <td align="left">4</td>
-<td align="left"><code>k K n rand</code></td>
-<td align="left"><code>P factor rand</code></td>
+<td align="left"><code>k K rand rand</code></td>
+<td align="left"><code>S E rand</code></td>
 <td align="left"><code>r. spec.</code></td>
 <td align="left"><code>r. spec.</code></td>
 </tr>
@@ -627,7 +627,7 @@ gillespie(<span class="dt">int</span> reactionNumber_alias, <span class="dt">int
 </tr>
 <tr class="odd">
 <td align="left"><code>void (modelClassType::*ODEs)(double *, double *)</code></td>
-<td align="left">member function pointer. Used to point to ODEs function provided by the specific model.</td>
+<td align="left">member function pointer. Used to point to ODEs function provided by the specific model. First <code>double*</code> point to the returned time derivation, second <code>double*</code> points to where the reactants are stored.</td>
 </tr>
 <tr class="even">
 <td align="left"><code>int (*Normalizer)(double *)</code></td>
