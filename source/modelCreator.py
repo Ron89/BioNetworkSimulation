@@ -94,28 +94,28 @@ class reactionNetwork:
             if self.reaction[i][0]==0:
                 print "order-0\t",
                 print "k =", self.reaction[i][1][0]
-                print "Nul. ->",
+                print "\t Nul. ->",
             elif self.reaction[i][0]==1:
                 print "order-1\t",
                 print "k =", self.reaction[i][1][0]
-                print self.reactant[self.reaction[i][2][0]][0],"->",
+                print "\t",self.reactant[self.reaction[i][2][0]][0],"->",
                 RHS_reactant[self.reaction[i][2][0]]+=1
             elif self.reaction[i][0]==2:
                 print "order-2\t",
                 print "k =", self.reaction[i][1][0]
-                print self.reactant[self.reaction[i][2][0]][0],'+',self.reactant[self.reaction[i][2][1]][0],"->",
+                print "\t",self.reactant[self.reaction[i][2][0]][0],'+',self.reactant[self.reaction[i][2][1]][0],"->",
                 RHS_reactant[self.reaction[i][2][0]]+=1
                 RHS_reactant[self.reaction[i][2][1]]+=1
             elif self.reaction[i][0]==3:
                 print "Hill equation\t",
                 print "k =", self.reaction[i][1][0], "\tK =", self.reaction[i][1][1], "\tH =", self.reaction[i][1][2]
-                print self.reactant[self.reaction[i][2][0]][0],'+',self.reaction[i][1][2],self.reactant[self.reaction[i][2][1]][0],"<=> [complex] ->",
+                print "\t",self.reactant[self.reaction[i][2][0]][0],'+',self.reaction[i][1][2],self.reactant[self.reaction[i][2][1]][0],"<=> [complex] ->",
                 RHS_reactant[self.reaction[i][2][0]]+=1
                 RHS_reactant[self.reaction[i][2][1]]+=self.reaction[i][1][2]
             elif self.reaction[i][0]==4:
                 print "MM kinetics\t",
                 print "k =", self.reaction[i][1][0], "\tK =", self.reaction[i][1][1]
-                print self.reactant[self.reaction[i][2][0]][0],'+',self.reactant[self.reaction[i][2][1]][0],"<=> [complex] ->",
+                print "\t",self.reactant[self.reaction[i][2][0]][0],'+',self.reactant[self.reaction[i][2][1]][0],"<=> [complex] ->",
                 RHS_reactant[self.reaction[i][2][0]]+=1
                 RHS_reactant[self.reaction[i][2][1]]+=1
             else:
