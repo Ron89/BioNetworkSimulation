@@ -102,7 +102,6 @@ void RKmethod<modelClassName>::constructor()
 		K6=new double [ODEIVPCommon<modelClassName>::varNumber];
 		temp=new double [ODEIVPCommon<modelClassName>::varNumber];
 		tempDeri=new double [ODEIVPCommon<modelClassName>::varNumber];
-		hMax=0;
 	}
 }
 
@@ -173,7 +172,9 @@ double RKmethod<modelClassName>::iterate(double * var)
 		else if (tempDelta>maxDelta) maxDelta=tempDelta;
 	}
 	if (maxDelta>1.) ODEIVPCommon<modelClassName>::ht=ODEIVPCommon<modelClassName>::ht*pow(maxDelta,-0.2);
-	else ODEIVPCommon<modelClassName>::ht=ODEIVPCommon<modelClassName>::ht*pow(maxDelta,-0.25);
+	else if (maxDelta>0. || hMax==0) 
+		ODEIVPCommon<modelClassName>::ht=ODEIVPCommon<modelClassName>::ht*pow(maxDelta,-0.25);
+	else ODEIVPCommon<modelClassName>::ht=hMax;
 	if (ODEIVPCommon<modelClassName>::ht>hMax && hMax!=0) 	ODEIVPCommon<modelClassName>::ht=hMax;
 
 //Normalize result
