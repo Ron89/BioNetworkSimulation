@@ -277,7 +277,7 @@ void coarseGrainedStochastic::simulate(string fileName)
 		if ((time-lastSavedTime)>=saveTimeInterval)
 		{
 			trajStorage.append(time,comp);
-			lastSavedTime=time;
+			lastSavedTime+=saveTimeInterval;
 		}
 	}
 	trajStorage.save(fileName,0);
@@ -294,7 +294,7 @@ void coarseGrainedDeterministic::simulate(string fileName)
 		if ((time-lastSavedTime)>=saveTimeInterval)
 		{
 			trajStorage.append(time,comp);
-			lastSavedTime=time;
+			lastSavedTime+=saveTimeInterval;
 		}
 	}
 	trajStorage.save(fileName,0);
