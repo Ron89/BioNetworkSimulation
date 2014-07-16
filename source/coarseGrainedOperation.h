@@ -31,12 +31,12 @@ public:
 	long trajectoryPointer;
 	double * time;
 	compType * comp;
-	void reallocate(int nComp_alias, unsigned long trajectorySize);
+	void reallocate(int nComp_alias, long trajectorySize);
 	void erase();
 	
 // constructors
 	trajectory();
-	trajectory(int nComp_alias, unsigned long trajectorySize_alias);
+	trajectory(int nComp_alias, long trajectorySize_alias);
 // copy constructor;
 	trajectory( trajectory<compType> & dummy);
 	trajectory & operator=( trajectory<compType> & dummy);
@@ -70,8 +70,8 @@ public:
 			double saveTimeInterval_alias):
 		coarseGrainedModel<int,double>(modelName), gillespie<coarseGrainedStochastic>
 												   (nReact,
-													&coarseGrainedModel::rateDetermine,
-													&coarseGrainedModel::reactantUpdate)
+													&coarseGrainedModel<int,double>::rateDetermine,
+													&coarseGrainedModel<int,double>::reactantUpdate)
 	{
 		stoppingTime=stoppingTime_alias;
 		saveTimeInterval=saveTimeInterval_alias;
@@ -82,8 +82,8 @@ public:
 	coarseGrainedStochastic(coarseGrainedStochastic & dummy):
 		coarseGrainedModel<int,double>(dummy),
 		gillespie<coarseGrainedStochastic>(nReact,
-				&coarseGrainedModel::rateDetermine,
-				&coarseGrainedModel::reactantUpdate)
+				&coarseGrainedModel<int,double>::rateDetermine,
+				&coarseGrainedModel<int,double>::reactantUpdate)
 	{
 	//	assign(dummy);
 	}
@@ -170,7 +170,7 @@ void trajectory<compType>::assign( trajectory<compType> & dummy)
 }
 
 template<typename compType>
-void trajectory<compType>::reallocate(int nComp_alias, unsigned long trajectorySize)
+void trajectory<compType>::reallocate(int nComp_alias, long trajectorySize)
 {
 	if (trajectoryDefined) 	erase();
 	time=new double [trajectorySize];
@@ -202,7 +202,7 @@ trajectory<compType>::trajectory()
 }
 
 template<typename compType>
-trajectory<compType>::trajectory(int nComp_alias, unsigned long trajectorySize_alias)
+trajectory<compType>::trajectory(int nComp_alias, long trajectorySize_alias)
 {
 	trajectoryDefined=0;
 	trajectoryPointer=0;
