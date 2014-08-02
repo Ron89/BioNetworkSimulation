@@ -222,11 +222,11 @@ BCNetwork(vector&lt;compType&gt; &amp; initComp, vector&lt;rateType&gt; &amp; in
 </tr>
 <tr class="even">
 <td align="left"><code>rate_0~3</code></td>
-<td align="left"><code>float</code>, store reaction constants. Depending on reaction type,<br> not all 4 of them are necessarily meaningful.</td>
+<td align="left"><code>float</code>, store reaction constants. Depending on reaction type, not all 4 of them are necessarily meaningful.</td>
 </tr>
 <tr class="odd">
 <td align="left"><code>dep_0~2</code></td>
-<td align="left"><code>int</code>, store reaction rate dependency on reactants. <br>Each int represents the serial of the respective reactant.<br> Depending on reaction type,<br> not all 3 of them are necessarily meaningful.</td>
+<td align="left"><code>int</code>, store reaction rate dependency on reactants. Each int represents the serial of the respective reactant. Depending on reaction type, not all 3 of them are necessarily meaningful.</td>
 </tr>
 <tr class="even">
 <td align="left"><code>upd_num</code></td>
@@ -234,7 +234,7 @@ BCNetwork(vector&lt;compType&gt; &amp; initComp, vector&lt;rateType&gt; &amp; in
 </tr>
 <tr class="odd">
 <td align="left"><code>upd_0~2</code></td>
-<td align="left"><code>int &lt;tab&gt; double</code>, store the serial number and number of <br> molecules change by each instance of reaction. <br> Dependingon <code>upd_num</code>,<br> not all 3 of them are necessarily meaningful.</td>
+<td align="left"><code>int &lt;tab&gt; double</code>, store the serial number and number of molecules change by each instance of reaction. Dependingon <code>upd_num</code>, not all 3 of them are necessarily meaningful.</td>
 </tr>
 </tbody>
 </table>
@@ -342,7 +342,7 @@ BCNetwork(vector&lt;compType&gt; &amp; initComp, vector&lt;rateType&gt; &amp; in
 </tr>
 <tr class="even">
 <td align="left"><code>double updateOrder[MAXUPDSET]</code></td>
-<td align="left"><code>updateOrder[i]</code> gives the amount of reactant change <br> for reactant <code>updateSet[i]</code>.</td>
+<td align="left"><code>updateOrder[i]</code> gives the amount of reactant change for reactant <code>updateSet[i]</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -384,11 +384,11 @@ reaction(<span class="dt">const</span> reaction &amp; dummy)</code></pre>
 </tr>
 <tr class="odd">
 <td align="left"><code>compType comp</code></td>
-<td align="left">storage for number of each reactant at each time point.<br> Format: <code>comp[t*nComp+i]</code>.</td>
+<td align="left">storage for number of each reactant at each time point. Format: <code>comp[t*nComp+i]</code>.</td>
 </tr>
 <tr class="even">
 <td align="left"><code>long trajectoryPointer</code></td>
-<td align="left">writing pointer, indicate the location to write <br> when using <code>void assign(int, long)</code> to write new data<br> or how many data values to save when using <br> <code>void save(string, bool)</code> to write data to disk.</td>
+<td align="left">writing pointer, indicate the location to write when using <code>void assign(int, long)</code> to write new data or how many data values to save when using <code>void save(string, bool)</code> to write data to disk.</td>
 </tr>
 </tbody>
 </table>
@@ -545,7 +545,7 @@ coarseGrainedStochastic(coarseGrainedStochastic &amp; dummy):
 </tr>
 <tr class="even">
 <td align="left"><code>bool saveMethod</code></td>
-<td align="left">0=save every <code>savePointInterval</code> steps; <br>1=save every saveTimeInterval of time;</td>
+<td align="left">0=save every <code>savePointInterval</code> steps; 1=save every saveTimeInterval of time;</td>
 </tr>
 <tr class="odd">
 <td align="left"><code>bool noSave</code></td>
@@ -585,11 +585,11 @@ coarseGrainedStochastic(coarseGrainedStochastic &amp; dummy):
 <tbody>
 <tr class="odd">
 <td align="left"><code>int modelClassName::*rateDetermine_alias(double *)</code></td>
-<td align="left">supplied by model, using model's own reactant information<br> to calculate the reaction rate for each reaction.<br> The rate will be pass to the algorithm as a double type pointer<br> given as the function argument.</td>
+<td align="left">supplied by model, using model's own reactant information to calculate the reaction rate for each reaction. The rate will be pass to the algorithm as a double type pointer given as the function argument.</td>
 </tr>
 <tr class="even">
 <td align="left"><code>int (modelClassName::*reactantUpdate_alias)(const double *)</code></td>
-<td align="left">supplied by model, algorithm will pass the number(1 or 0)<br>of each reaction taking places <br> during the time interval as a constant double type pointer.<br> The function member will use the array multiplying<br> the updating part of the reaction. Resulting value<br> will be added onto the current reactant amount<br> stored in model.</td>
+<td align="left">supplied by model, algorithm will pass the number(1 or 0)of each reaction taking places during the time interval as a constant double type pointer. The function member will use the array multiplying the updating part of the reaction. Resulting value will be added onto the current reactant amount stored in model.</td>
 </tr>
 </tbody>
 </table>

@@ -4,6 +4,7 @@
 #include<cstdlib>
 #include<cmath>
 #include<ctime>
+#include<random> 	// for the use of Mersenne Twister engine. Works only for c++11 or above.
 
 using namespace std;
 
@@ -13,12 +14,14 @@ class gillespie
 private:
 // random generator
 //	dsfmt_t dsfmt;
-
+	mt19937_64 randomMTwister;
 	inline double popRandom()
 	{
-		return drand48();
+//		return drand48();
+		return double(randomMTwister-randomMTwister.min())/double(randomMTwister.max()-randomMTwister.min());
 //		return dsfmt_genrand_close_open(&dsfmt);
 //		return randGen.operator();
+//
 	}
 
 // Required parameter 
@@ -35,7 +38,16 @@ public:
 // random reseeder
 	inline void reseedRandom(int seed)
 	{
-		srand48(seed);
+//		srand48(seed);
+		randomMTwister.seed(seed);
+//		randGen.seed(seed);
+//		dsfmt_init_gen_rand(&dsfmt, seed);
+	}
+	inline void reseedRandom(int seed1, int seed2)
+	{
+//		srand48(seed);
+		seed_seq sseq{seed1, seed2};
+		randomMTwister.seed(sseq);
 //		randGen.seed(seed);
 //		dsfmt_init_gen_rand(&dsfmt, seed);
 	}

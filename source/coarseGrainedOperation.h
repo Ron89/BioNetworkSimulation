@@ -91,6 +91,8 @@ public:
 
 // function member
 	void simulate(string fileName);
+	void simulate(void (*dataCollector)(double, *int)); 	// This simulation module will hand over
+															// saving interval to dataCollector.
 };
 
 // --------------------------
@@ -281,6 +283,15 @@ void coarseGrainedStochastic::simulate(string fileName)
 		}
 	}
 	trajStorage.save(fileName,0);
+}
+void coarseGrainedStochastic::simulate(void (*dataCollector)(double, *int))
+{
+	trajectory<int> trajStorage(nComp, int((stoppingTime-time)/saveTimeInterval)+1);
+	while (time<stoppingTime)
+	{
+		time+=iterate(comp);
+		dataCollector(time, comp);
+	}
 }
 
 // --------------------------
