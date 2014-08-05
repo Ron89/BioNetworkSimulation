@@ -20,7 +20,7 @@ private:
 	inline double popRandom()
 	{
 //		return drand48();
-		return double(randomMTwister-randomMTwister.min())/double(randomMTwister.max()-randomMTwister.min());
+		return double(randomMTwister()-randomMTwister.min())/double(randomMTwister.max()-randomMTwister.min());
 //		return dsfmt_genrand_close_open(&dsfmt);
 //		return randGen.operator();
 //
@@ -70,7 +70,7 @@ public:
 		reactantUpdate=reactantUpdate_alias;
 		reseedRandom(SEEDER_DEFAULT);
 	}
-	void assign(gillespie & dummy)
+	void assign(const gillespie<modelClassName> & dummy)
 	{
 		reactionNumber=dummy.reactionNumber;
 	}

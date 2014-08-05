@@ -277,7 +277,7 @@ void coarseGrainedStochastic::reset()
 void coarseGrainedStochastic::assign(const coarseGrainedStochastic & dummy)
 {
 	coarseGrainedModel<int,double>::assign(dummy);
-	gillespie::assign(dummy);
+	gillespie<coarseGrainedStochastic>::assign(dummy);
 }
 
 void coarseGrainedStochastic::simulate(string fileName)
