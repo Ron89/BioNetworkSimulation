@@ -6,6 +6,8 @@
 #include<ctime>
 #include<random> 	// for the use of Mersenne Twister engine. Works only for c++11 or above.
 
+#define SEEDER_DEFAULT 1
+
 using namespace std;
 
 template<typename modelClassName>
@@ -56,7 +58,9 @@ public:
 	double iterate(int * comp_alias);
 
 // constructor
-	gillespie(){}
+	gillespie(){
+		reseedRandom(SEEDER_DEFAULT);
+	}
 
 	gillespie(int reactionNumber_alias, int (modelClassName::*rateDetermine_alias)(double *, int *),
 			int (modelClassName::*reactantUpdate_alias)(int *, double *))	
@@ -64,6 +68,11 @@ public:
 		reactionNumber=reactionNumber_alias;
 		rateDetermine=rateDetermine_alias;
 		reactantUpdate=reactantUpdate_alias;
+		reseedRandom(SEEDER_DEFAULT);
+	}
+	void assign(gillespie & dummy)
+	{
+		reactionNumber=dummy.reactionNumber;
 	}
 };
 

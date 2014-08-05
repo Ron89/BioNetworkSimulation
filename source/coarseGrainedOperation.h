@@ -65,6 +65,10 @@ public:
 	void assign(const coarseGrainedStochastic & dummy);
 
 // constructors
+	coarseGrainedStochastic():coarseGrainedModel<int,double>(),gillespie<coarseGrainedStochastic>
+							  (nReact,&coarseGrainedModel<int,double>::rateDetermine,
+													&coarseGrainedModel<int,double>::reactantUpdate)
+	{}
 // load from file 
 	coarseGrainedStochastic(string & modelName, double stoppingTime_alias,
 			double saveTimeInterval_alias):
@@ -84,14 +88,19 @@ public:
 		gillespie<coarseGrainedStochastic>(nReact,
 				&coarseGrainedModel<int,double>::rateDetermine,
 				&coarseGrainedModel<int,double>::reactantUpdate)
-	{
-	//	assign(dummy);
-	}
+	{}
 	~coarseGrainedStochastic(){}
+
+// assign operator
+	coarseGrainedStochastic & operator=(coarseGrainedStochastic & dummy)
+	{
+		if (this!=&dummy) 	assign(dummy);
+		return *this;
+	}
 
 // function member
 	void simulate(string fileName);
-	void simulate(void (*dataCollector)(double, *int)); 	// This simulation module will hand over
+	void simulate(bool (*controller)(double, int *)); 	// This simulation module will hand over
 															// saving interval to dataCollector.
 };
 
@@ -268,6 +277,7 @@ void coarseGrainedStochastic::reset()
 void coarseGrainedStochastic::assign(const coarseGrainedStochastic & dummy)
 {
 	coarseGrainedModel<int,double>::assign(dummy);
+	gillespie::assign(dummy);
 }
 
 void coarseGrainedStochastic::simulate(string fileName)
@@ -284,14 +294,11 @@ void coarseGrainedStochastic::simulate(string fileName)
 	}
 	trajStorage.save(fileName,0);
 }
-void coarseGrainedStochastic::simulate(void (*dataCollector)(double, *int))
+
+void coarseGrainedStochastic::simulate(bool (*controller)(double, int *))
 {
-	trajectory<int> trajStorage(nComp, int((stoppingTime-time)/saveTimeInterval)+1);
-	while (time<stoppingTime)
-	{
-		time+=iterate(comp);
-		dataCollector(time, comp);
-	}
+	do time+=iterate(comp);
+	while (controller(time, comp));
 }
 
 // --------------------------
