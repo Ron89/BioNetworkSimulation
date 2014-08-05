@@ -91,7 +91,10 @@ public:
 	int reactantUpdate(updRateType * rate);
 	
 // constructor & destructor
-	coarseGrainedModel(){}
+	coarseGrainedModel()
+	{
+		initState=0;
+	}
 	coarseGrainedModel(string & modelName);
 	coarseGrainedModel(const coarseGrainedModel<compType, updRateType> & dummy);
 	~coarseGrainedModel();
