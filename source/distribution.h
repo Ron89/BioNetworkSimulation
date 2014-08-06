@@ -8,7 +8,7 @@
 
 #include "basicDef.h"
 
-#define DISTRIBUTION_SIZECAP 10000000000
+#define DISTRIBUTION_SIZECAP 2000000000
 #define DIST_ELEMENT_DESCRIPTION "/element_description"
 #define DIST_COUNTING "/counting"
 #define DIST_EXCEPTION "/exception"
@@ -17,8 +17,8 @@ using namespace std;
 
 struct element_count
 {
-	unsigned long ID;
-	unsigned long count;
+	long ID;
+	long count;
 	inline void assign(element_count & dummy)
 	{
 		ID=dummy.ID;
@@ -40,9 +40,9 @@ public:
 	int * observerRange; 	// maximum-minimum, with unit interval as 1.
 	int * compressLevel; 	// a compress level for each observer.
 	string resultFolder;
-	unsigned long int allocatedSize;
+	long int allocatedSize;
 	element_count * observer;
-	unsigned long int nElement_filled;
+	long int nElement_filled;
 	bool flag_Exceed;
 //	bool distributionDefined;
 	bool sampleTaken;
@@ -83,7 +83,7 @@ public:
 			tempCompress=1.;
 			for (int i=0; i<nObserver; i++)
 			{
-				compressLevel[i]*=max(1, compressBaseline*observerRange[i]/rangeMax);
+				compressLevel[i]=max(1, compressBaseline*observerRange[i]/rangeMax);
 				tempCompress*=double(compressLevel[i]);
 			}
 		}
@@ -102,34 +102,34 @@ public:
 		filePointer.close();
 
 		// allocate memory for the distribution
-		allocatedSize=(unsigned long) (tempSize/tempCompress);
+		allocatedSize=(long) (tempSize/tempCompress);
 		// initialize observer
 		observer=new element_count [allocatedSize];
-		for (unsigned long i=0; i<allocatedSize; i++) 	observer[i].ID=observer[i].count=0;
+		for (long i=0; i<allocatedSize; i++) 	observer[i].ID=observer[i].count=0;
 		nElement_filled=0;
 
 		resultFolder=resultFolder_alias;
 		if (stat(resultFolder.c_str(), &sb) != 0) 	mkdir(resultFolder.c_str(),0755);
 	// initiate necessary files;
-		filePointer.open((resultFolder+DIST_ELEMENT_DESCRIPTION).c_str(), ios::out | ios::trunc);
-		filePointer.close();
+//		filePointer.open((resultFolder+DIST_ELEMENT_DESCRIPTION).c_str(), ios::out | ios::trunc);
+//		filePointer.close();
 		filePointer.open((resultFolder+DIST_EXCEPTION).c_str(), ios::out | ios::trunc);
 		filePointer.close();
 		flag_Exceed=0;	
 	}
-	unsigned long IDextraction(int * element_alias)
+	long IDextraction(int * element_alias)
 	{
-		unsigned long tempID=(element_alias[0]%observerRange[0])/compressLevel[0];
+		long tempID=(element_alias[0]%observerRange[0])/compressLevel[0];
 		for (int i=1;i<nObserver;i++)
 		{
 			tempID=tempID*(observerRange[i-1]/compressLevel[i-1])+(element_alias[i]%observerRange[i])/compressLevel[i];
 		}
 		return tempID;
 	}
-	unsigned long insertCounting(int * element_alias)
+	long insertCounting(int * element_alias)
 	{
-		unsigned long ll=0, rl=nElement_filled, templ;
-		unsigned long tempID=IDextraction(element_alias);
+		long ll=0, rl=nElement_filled, templ;
+		long tempID=IDextraction(element_alias);
 		if (nElement_filled==0)
 		{
 			insertElement(element_alias,0);
@@ -160,10 +160,10 @@ public:
 			return 1;
 		}
 	}
-	void insertElement(int * element_alias, unsigned long position)
+	void insertElement(int * element_alias, long position)
 	{
 		fstream elementDescription;
-		unsigned long ID=IDextraction(element_alias);
+		long ID=IDextraction(element_alias);
 		if (nElement_filled<allocatedSize)	
 		{
 			// record the first sample element in element_description file
@@ -179,7 +179,7 @@ public:
 			}
 
 			// insert this new element in the observer 
-			for (unsigned long i = nElement_filled-1; i>=position;i--) 	observer[i+1]=observer[i];
+			for (long i = nElement_filled-1; i>=position;i--) 	observer[i+1]=observer[i];
 			observer[position].ID=ID;
 			observer[position].count=1;
 			nElement_filled++;
@@ -197,9 +197,9 @@ public:
 	{
 		FILE * distFile;
 		distFile=fopen((resultFolder+DIST_COUNTING).c_str(), "w");
-		for (unsigned long i=0;i<nElement_filled;i++)
+		for (long i=0;i<nElement_filled;i++)
 		{
-			fprintf(distFile, "%15lu\t%20lu\n",observer[i].ID,observer[i].count);
+			fprintf(distFile, "%15ld\t%20ld\n",observer[i].ID,observer[i].count);
 		}
 		fclose(distFile);
 	}
