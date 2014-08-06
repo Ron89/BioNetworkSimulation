@@ -60,6 +60,7 @@ public:
 		int compressBaseline=1;
 		int rangeMax=0;
 		fstream filePointer;
+		resultFolder=resultFolder_alias;
 
 		sampleTaken=0; 	// so that when the first sample is taken, description can be complete
 
@@ -108,7 +109,6 @@ public:
 		for (long i=0; i<allocatedSize; i++) 	observer[i].ID=observer[i].count=0;
 		nElement_filled=0;
 
-		resultFolder=resultFolder_alias;
 		if (stat(resultFolder.c_str(), &sb) != 0) 	mkdir(resultFolder.c_str(),0755);
 	// initiate necessary files;
 //		filePointer.open((resultFolder+DIST_ELEMENT_DESCRIPTION).c_str(), ios::out | ios::trunc);
