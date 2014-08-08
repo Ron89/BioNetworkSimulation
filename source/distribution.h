@@ -11,52 +11,34 @@
 #define DISTRIBUTION_SIZECAP 2000000000
 #define DIST_ELEMENT_DESCRIPTION "/element_description"
 #define DIST_COUNTING "/counting"
-#define DIST_EXCEPTION "/exception"
+#define MAX_VARIABLE 10
 
 using namespace std;
-
-struct element_count
-{
-	long ID;
-	long count;
-	inline void assign(element_count & dummy)
-	{
-		ID=dummy.ID;
-		count=dummy.count;
-	}
-	element_count & operator=( element_count & dummy)
-	{
-		if (this!=&dummy) 	assign(dummy);
-		return *this;
-	}
-};
-
 
 // It works, but code need refine later.
 class distribution
 {
 public:
 	int nObserver;
-	int * observerRange; 	// maximum-minimum, with unit interval as 1.
-	int * compressLevel; 	// a compress level for each observer.
+	int observerRange[MAX_VARIABLE]; 	// maximum-minimum, with unit interval as 1.
+	int highBound[MAX_VARIABLE];
+	int lowBound[MAX_VARIABLE];
+	int compressLevel[MAX_VARIABLE]; 	// a compress level for each observer.
 	string resultFolder;
 	long int allocatedSize;
-	element_count * observer;
-	long int nElement_filled;
+	long * observer;
 	bool flag_Exceed;
 //	bool distributionDefined;
 	bool sampleTaken;
 
 	~distribution()
 	{
-		delete [] compressLevel;
-		delete [] observerRange;
 		delete [] observer;
 	}
 	distribution(int nObserver_alias, int * observerRange_alias, string & resultFolder_alias)
 	{
 		struct stat sb; 	// check existance of folder
-		double tempSize=1, tempCompress=1;
+		long tempSize=1, tempCompress=1;
 		int compressBaseline=1;
 		int rangeMax=0;
 		fstream filePointer;
@@ -65,17 +47,15 @@ public:
 		sampleTaken=0; 	// so that when the first sample is taken, description can be complete
 
 		nObserver=nObserver_alias;
-		compressLevel=new int [nObserver];
-		observerRange=new int [nObserver];
 		
 		for (int i=0; i<nObserver; i++)
 		{
 			observerRange[i]=observerRange_alias[i];
 			if (observerRange[i]>rangeMax)
 				rangeMax=observerRange[i];
-			tempSize*=double(observerRange[i]);
+			tempSize*=observerRange[i];
 			compressLevel[i]=1;
-			tempCompress*=double(compressLevel[i]);
+			tempCompress*=compressLevel[i];
 		}
 		// determine compress level based on the memory allowed to uptake
 		while (tempSize/tempCompress>DISTRIBUTION_SIZECAP)
@@ -85,7 +65,9 @@ public:
 			for (int i=0; i<nObserver; i++)
 			{
 				compressLevel[i]=max(1, compressBaseline*observerRange[i]/rangeMax);
-				tempCompress*=double(compressLevel[i]);
+				while (observerRange[i]%compressLevel[i]!=0)
+					compressLevel[i]-=1;
+				tempCompress*=compressLevel[i];
 			}
 		}
 
@@ -103,18 +85,12 @@ public:
 		filePointer.close();
 
 		// allocate memory for the distribution
-		allocatedSize=(long) (tempSize/tempCompress);
+		allocatedSize=tempSize/tempCompress;
 		// initialize observer
-		observer=new element_count [allocatedSize];
-		for (long i=0; i<allocatedSize; i++) 	observer[i].ID=observer[i].count=0;
-		nElement_filled=0;
+		observer=new long [allocatedSize];
+		for (long i=0; i<allocatedSize; i++) 	observer[i]=0;
 
 		if (stat(resultFolder.c_str(), &sb) != 0) 	mkdir(resultFolder.c_str(),0755);
-	// initiate necessary files;
-//		filePointer.open((resultFolder+DIST_ELEMENT_DESCRIPTION).c_str(), ios::out | ios::trunc);
-//		filePointer.close();
-		filePointer.open((resultFolder+DIST_EXCEPTION).c_str(), ios::out | ios::trunc);
-		filePointer.close();
 		flag_Exceed=0;	
 	}
 	long IDextraction(int * element_alias)
@@ -126,80 +102,56 @@ public:
 		}
 		return tempID;
 	}
-	long insertCounting(int * element_alias)
+	inline long insertCounting(int * element_alias)
 	{
-		long ll=0, rl=nElement_filled, templ;
-		long tempID=IDextraction(element_alias);
-		if (nElement_filled==0)
-		{
-			insertElement(element_alias,0);
-			return 1;
-		}
-		else if (tempID>=observer[ll].ID)
-		{
-			while (rl-ll>1)
-			{
-				templ=(ll+rl)/2;
-				if (tempID<observer[templ].ID) rl=templ;
-				else 	ll=templ;
-				if (tempID==observer[templ].ID) break;
-			}
-			if (observer[ll].ID==tempID) 	
-			{
-				return observer[ll].count++;
-			}
-			else 
-			{
-				insertElement(element_alias,ll+1);
-				return 1;
-			}
-		}
-		else
-		{
-			insertElement(element_alias,0);
-			return 1;
-		}
+		checkBoundary(element_alias);
+		return observer[IDextraction(element_alias)]++;
 	}
-	void insertElement(int * element_alias, long position)
+	void checkBoundary(int * element_alias)
 	{
-		fstream elementDescription;
-		long ID=IDextraction(element_alias);
-		if (nElement_filled<allocatedSize)	
+		int tempNum;
+		if (sampleTaken==0) 	// when it's the first data taken
 		{
-			// record the first sample element in element_description file
-			if (sampleTaken==0)
+			fstream elementDescription;
+			elementDescription.open((resultFolder+DIST_ELEMENT_DESCRIPTION).c_str(), ios::out | ios::app);
+			elementDescription<<" sample element:\n\t";
+			for (int i=0;i<nObserver;i++)
 			{
-				elementDescription.open((resultFolder+DIST_ELEMENT_DESCRIPTION).c_str(), ios::out | ios::app);
-				elementDescription<<" sample element:\n\t";
-				for (int i=0;i<nObserver;i++)
-					elementDescription<<element_alias[i]<<'\t';
-				elementDescription<<endl;
-				elementDescription.close();
-				sampleTaken=1;
+				highBound[i]=lowBound[i]=element_alias[i];	// initiate highBound and lowBound value;
+				elementDescription<<element_alias[i]<<'\t';
 			}
-
-			// insert this new element in the observer 
-			for (long i = nElement_filled-1; i>=position;i--) 	observer[i+1]=observer[i];
-			observer[position].ID=ID;
-			observer[position].count=1;
-			nElement_filled++;
-		}
-		else
-		{
-			flag_Exceed=1;
-			elementDescription.open((resultFolder+DIST_EXCEPTION).c_str(), ios::out | ios::app);
-			for (int i=0;i<nObserver;i++) 	elementDescription<<element_alias[i]<<'\t';
 			elementDescription<<endl;
 			elementDescription.close();
+				
+			sampleTaken=1;
+		}
+		else
+		{
+			
+			for (int i=0;i<nObserver;i++)
+			{
+				tempNum=element_alias[i];
+				if (tempNum>highBound[i])
+				{
+					highBound[i]=tempNum;
+					if (highBound[i]-lowBound[i]>=observerRange[i]-1) 	flag_Exceed=1;
+				}
+				if (tempNum<lowBound[i])
+				{
+					lowBound[i]=tempNum;
+					if (highBound[i]-lowBound[i]>=observerRange[i]-1) 	flag_Exceed=1;
+				}
+			}
 		}
 	}
 	void saveDistribution()
 	{
 		FILE * distFile;
 		distFile=fopen((resultFolder+DIST_COUNTING).c_str(), "w");
-		for (long i=0;i<nElement_filled;i++)
+		for (long i=0;i<allocatedSize;i++)
 		{
-			fprintf(distFile, "%15ld\t%20ld\n",observer[i].ID,observer[i].count);
+			if (observer[i]!=0)
+				fprintf(distFile, "%15ld\t%20ld\n",i,observer[i]);
 		}
 		fclose(distFile);
 	}
