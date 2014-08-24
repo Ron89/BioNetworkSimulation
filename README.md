@@ -874,3 +874,31 @@ normalizer. Two additional information is loaded to specify `stoppingTime` and
 	stoppingTime=runTime;
 	saveTimeInterval=saveInterval;
 ```
+
+# Model Modification Tools
+defined in `modelTool.py` with alias `modelCreator.py`. 
+
+## Class reactionNetwork:
+
+Defines a structure that stores the information of a reaction network, and the 
+operations that applies to it.
+
+member name | type | member function
+--- | --- | ---
+`reactant` | dict | structure to store reactants and the amount of each of them. Indeces are the hash of corresponding reactant's name.
+`reaction` | dict | structure to store reactions, their types and coefficient. Indeces are randomly generated number which is ensured to be unique within the network.
+`reactant_const` | dict | indeces(hash of reactant name string) of reactants that are kept constant during scaling
+`reaction_const` | dict | indeces(randomly generated, unique number) of reactions that are kept constant during scaling
+`insert_new_reaction` | func | insert a new reaction to the network, if there are hashes not exists in the network, prompt to add.
+`insert_new_reactant` | func | insert a new reactant to the network. If initial value is not provided, prompt to insert.
+`list_reaction` | func | list the reactions with their indeces in human understandable format. If `list_target` is not provided, list the whole network.
+`list_reactant` | func | list the reactants, their hash, reactant name and initial value.
+`load` | func | load a network from earlier saved file. (`_dev` is automatically added, don't add it when specify the modelname)
+`save` | func | save the current reaction network into a folder for future loading. (`_dev` will be automatically added after a user specified model name.)
+`export` | func | export the current reaction network into a folder that is recognizable by `coarseGrainedxx` simulation modules.
+`scaling` | func | scale the network by a certain spacial(`eta_c_alias`) and time(`eta_t_alias`) ratio. Reactions and reactants that are marked constant will not be changed. Reaction rate of non-const-reactions that involves the constant reactants will be adjust accordingly.
+`knockout_reactant` | func | knockout the reactants listed in the argument. Involved reactions will be prompted to be removed. Since reactions with undefined reactants are not valid. Not confirming removing the involved reactions will cancel the operation altogether.
+`duplicate_reaction` | func | create a duplicate of a currently existing reaction and insert it into the network. Return the index of the newly created reaction.
+
+Note:
+1. Since removing entries from an existing dictionary is well defined in python, we do not build additional methods for reaction knocking out. 

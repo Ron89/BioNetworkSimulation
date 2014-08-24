@@ -54,6 +54,9 @@ code > span.er { font-weight: bold; }
 <li><a href="#odesimulate-class">ODESimulate Class</a></li>
 </ul></li>
 </ul></li>
+<li><a href="#model-modification-tools">Model Modification Tools</a><ul>
+<li><a href="#class-reactionnetwork">Class reactionNetwork:</a></li>
+</ul></li>
 </ul>
 </div>
 <h1 id="documentary-for-bcnetwork-simulation-related-codes."><a href="#documentary-for-bcnetwork-simulation-related-codes.">Documentary for BCNetwork simulation related Codes.</a></h1>
@@ -728,5 +731,91 @@ RKmethod(<span class="dt">int</span> sysSize, <span class="dt">double</span> ini
 <p>Notice that no default constructor is defined. This constructor will load a typical biochemical network, and call the constructor of <code>RKmethod</code> that doesn't use normalizer. Two additional information is loaded to specify <code>stoppingTime</code> and <code>saveTimeInterval</code>.</p>
 <pre class="sourceCode cpp"><code class="sourceCode cpp">    stoppingTime=runTime;
     saveTimeInterval=saveInterval;</code></pre>
+<h1 id="model-modification-tools"><a href="#model-modification-tools">Model Modification Tools</a></h1>
+<p>defined in <code>modelTool.py</code> with alias <code>modelCreator.py</code>.</p>
+<h2 id="class-reactionnetwork"><a href="#class-reactionnetwork">Class reactionNetwork:</a></h2>
+<p>Defines a structure that stores the information of a reaction network, and the operations that applies to it.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">member name</th>
+<th align="left">type</th>
+<th align="left">member function</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>reactant</code></td>
+<td align="left">dict</td>
+<td align="left">structure to store reactants and the amount of each of them. Indeces are the hash of corresponding reactant's name.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>reaction</code></td>
+<td align="left">dict</td>
+<td align="left">structure to store reactions, their types and coefficient. Indeces are randomly generated number which is ensured to be unique within the network.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>reactant_const</code></td>
+<td align="left">dict</td>
+<td align="left">indeces(hash of reactant name string) of reactants that are kept constant during scaling</td>
+</tr>
+<tr class="even">
+<td align="left"><code>reaction_const</code></td>
+<td align="left">dict</td>
+<td align="left">indeces(randomly generated, unique number) of reactions that are kept constant during scaling</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>insert_new_reaction</code></td>
+<td align="left">func</td>
+<td align="left">insert a new reaction to the network, if there are hashes not exists in the network, prompt to add.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>insert_new_reactant</code></td>
+<td align="left">func</td>
+<td align="left">insert a new reactant to the network. If initial value is not provided, prompt to insert.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>list_reaction</code></td>
+<td align="left">func</td>
+<td align="left">list the reactions with their indeces in human understandable format. If <code>list_target</code> is not provided, list the whole network.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>list_reactant</code></td>
+<td align="left">func</td>
+<td align="left">list the reactants, their hash, reactant name and initial value.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>load</code></td>
+<td align="left">func</td>
+<td align="left">load a network from earlier saved file. (<code>_dev</code> is automatically added, don't add it when specify the modelname)</td>
+</tr>
+<tr class="even">
+<td align="left"><code>save</code></td>
+<td align="left">func</td>
+<td align="left">save the current reaction network into a folder for future loading. (<code>_dev</code> will be automatically added after a user specified model name.)</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>export</code></td>
+<td align="left">func</td>
+<td align="left">export the current reaction network into a folder that is recognizable by <code>coarseGrainedxx</code> simulation modules.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>scaling</code></td>
+<td align="left">func</td>
+<td align="left">scale the network by a certain spacial(<code>eta_c_alias</code>) and time(<code>eta_t_alias</code>) ratio. Reactions and reactants that are marked constant will not be changed. Reaction rate of non-const-reactions that involves the constant reactants will be adjust accordingly.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>knockout_reactant</code></td>
+<td align="left">func</td>
+<td align="left">knockout the reactants listed in the argument. Involved reactions will be prompted to be removed. Since reactions with undefined reactants are not valid. Not confirming removing the involved reactions will cancel the operation altogether.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>duplicate_reaction</code></td>
+<td align="left">func</td>
+<td align="left">create a duplicate of a currently existing reaction and insert it into the network. Return the index of the newly created reaction.</td>
+</tr>
+</tbody>
+</table>
+<p>Note: 1. Since removing entries from an existing dictionary is well defined in python, we do not build additional methods for reaction knocking out.</p>
 </body>
 </html>
