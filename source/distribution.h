@@ -8,7 +8,7 @@
 
 #include "basicDef.h"
 
-#define DISTRIBUTION_SIZECAP 2000000000
+#define DISTRIBUTION_SIZECAP 4000000000
 #define DIST_ELEMENT_DESCRIPTION "/element_description"
 #define DIST_COUNTING "/counting"
 #define MAX_VARIABLE 10
@@ -16,16 +16,21 @@
 using namespace std;
 
 // It works, but code need refine later.
+// To ensure the efficiency of file writing, I use the C routine rather than the mostly 
+// used c++ routine.
 class distribution
 {
 public:
 	int nObserver;
 	int observerRange[MAX_VARIABLE]; 	// maximum-minimum, with unit interval as 1.
+	int observerZero[MAX_VARIABLE]; 	// indicate where the zero value is.
 	int highBound[MAX_VARIABLE];
 	int lowBound[MAX_VARIABLE];
 	int compressLevel[MAX_VARIABLE]; 	// a compress level for each observer.
+	int compressLevel_optimized[MAX_VARIABLE]; 	// a compress level for each observer.
 	string resultFolder;
 	long int allocatedSize;
+	long int allocatedSize_optimized;
 	long * observer;
 	bool flag_Exceed;
 //	bool distributionDefined;
@@ -35,72 +40,68 @@ public:
 	{
 		delete [] observer;
 	}
+
+	// class constructor for creation mode
 	distribution(int nObserver_alias, int * observerRange_alias, string & resultFolder_alias)
 	{
 		struct stat sb; 	// check existance of folder
-		long tempSize=1, tempCompress=1;
-		int compressBaseline=1;
-		int rangeMax=0;
+
+		nObserver=nObserver_alias;
+		for (int i=0; i<nObserver; i++)
+		{
+			observerRange[i]=observerRange_alias[i];
+		}
+		
+		initiateScheme(); 	// initiating storage scheme
+		optimizeScheme(); 	// optimize compress level of the distribution for memory
+
 		fstream filePointer;
 		resultFolder=resultFolder_alias;
 
 		sampleTaken=0; 	// so that when the first sample is taken, description can be complete
 
-		nObserver=nObserver_alias;
-		
-		for (int i=0; i<nObserver; i++)
-		{
-			observerRange[i]=observerRange_alias[i];
-			if (observerRange[i]>rangeMax)
-				rangeMax=observerRange[i];
-			tempSize*=observerRange[i];
-			compressLevel[i]=1;
-			tempCompress*=compressLevel[i];
-		}
-		// determine compress level based on the memory allowed to uptake
-		while (tempSize/tempCompress>DISTRIBUTION_SIZECAP)
-		{
-			compressBaseline*=2;
-			tempCompress=1.;
-			for (int i=0; i<nObserver; i++)
-			{
-				compressLevel[i]=max(1, compressBaseline*observerRange[i]/rangeMax);
-				while (observerRange[i]%compressLevel[i]!=0)
-					compressLevel[i]-=1;
-				tempCompress*=compressLevel[i];
-			}
-		}
-
-		// write the rule to file
+		// generate folder if not exist
+		if (stat(resultFolder.c_str(), &sb) != 0) 	mkdir(resultFolder.c_str(),0755);
+		flag_Exceed=0;	
+		// write the storage scheme to file
 		filePointer.open((resultFolder+DIST_ELEMENT_DESCRIPTION).c_str(), ios::out | ios::trunc);
 		filePointer<<"# This file contains the description for the distribution.\n";
 		filePointer<<"# Observer Number: \n\t"<<nObserver<<endl;
-		filePointer<<"# Range:\n";
+		filePointer<<"# Range:\n\t";
 		for (int i=0;i<nObserver;i++)
 			filePointer<<observerRange[i]<<'\t';
-		filePointer<<"\n# Compress level: \n";
+		filePointer<<"\n# Compress level: \n\t";
 		for (int i=0;i<nObserver;i++)
 			filePointer<< compressLevel[i]<<'\t';
 		filePointer<<endl;
 		filePointer.close();
 
 		// allocate memory for the distribution
-		allocatedSize=tempSize/tempCompress;
 		// initialize observer
 		observer=new long [allocatedSize];
 		for (long i=0; i<allocatedSize; i++) 	observer[i]=0;
 
-		if (stat(resultFolder.c_str(), &sb) != 0) 	mkdir(resultFolder.c_str(),0755);
-		flag_Exceed=0;	
 	}
 	long IDextraction(int * element_alias)
 	{
 		long tempID=(element_alias[0]%observerRange[0])/compressLevel[0];
 		for (int i=1;i<nObserver;i++)
 		{
-			tempID=tempID*(observerRange[i-1]/compressLevel[i-1])+(element_alias[i]%observerRange[i])/compressLevel[i];
+			tempID=tempID*(observerRange[i]/compressLevel[i])+
+			(element_alias[i]%observerRange[i])/compressLevel[i];
 		}
 		return tempID;
+	}
+
+	void ID2Index(int * element_alias, long ID_alias)
+	{
+		long tempID=ID_alias;
+		for(int i=nObserver-1;i>=0;i--) 	
+		{
+			element_alias[i]=observerZero[i]+
+			tempID%(observerRange[i]/compressLevel[i])*compressLevel[i]+compressLevel[i]/2;
+			tempID/=(observerRange[i]/compressLevel[i]);
+		}
 	}
 	inline long insertCounting(int * element_alias)
 	{
@@ -114,11 +115,12 @@ public:
 		{
 			fstream elementDescription;
 			elementDescription.open((resultFolder+DIST_ELEMENT_DESCRIPTION).c_str(), ios::out | ios::app);
-			elementDescription<<" sample element:\n\t";
+			elementDescription<<"# sample element:\n\t";
 			for (int i=0;i<nObserver;i++)
 			{
 				highBound[i]=lowBound[i]=element_alias[i];	// initiate highBound and lowBound value;
 				elementDescription<<element_alias[i]<<'\t';
+				observerZero[i]=element_alias[i]/observerRange[i];
 			}
 			elementDescription<<endl;
 			elementDescription.close();
@@ -154,6 +156,70 @@ public:
 				fprintf(distFile, "%15ld\t%20ld\n",i,observer[i]);
 		}
 		fclose(distFile);
+	}
+	
+// initialize storage scheme(used when creating new distribution)
+	void initiateScheme()
+	{
+		for (int i=0; i<nObserver; i++)
+		{
+			compressLevel[i]=1;
+		}
+	}
+
+// optimize compress level of the distribution for memory
+// based on DISTRIBUTION_SIZECAP
+// hope in the future can use real memory size to determine it.
+// Note that compression is based on loss of information, and lost information can
+// never be regen. Thus the compress level can only be raised higher.(currently
+// on base 2 basis.) 
+	void optimizeScheme(bool replaceCurrentScheme=1)
+	{
+		int rangeMax=0;
+		long tempSize=1, tempCompress=1; 	// 
+		int compressBaseline=1; 
+		// load current range, resource requirement and compress level.
+		for (int i=0; i<nObserver; i++)
+		{
+			compressLevel_optimized[i]=compressLevel[i]; 	// backup current compress level;
+
+			if (observerRange[i]>rangeMax)	rangeMax=observerRange[i];
+			tempSize*=observerRange[i];
+			tempCompress*=compressLevel[i];
+			if (compressLevel[i]>compressBaseline) 	compressBaseline=compressLevel[i];
+		}
+		// determine compress level based on the memory allowed to uptake
+		while (tempSize/tempCompress>DISTRIBUTION_SIZECAP)
+		{
+			compressBaseline*=2;
+			tempCompress=1.;
+			for (int i=0; i<nObserver; i++)
+			{
+				compressLevel[i]=max(1, compressBaseline*observerRange[i]/rangeMax);
+				while (observerRange[i]%compressLevel[i]!=0)
+					compressLevel[i]-=1;
+				tempCompress*=compressLevel[i];
+			}
+		}
+		if(replaceCurrentScheme==0)
+		{
+			int temp=1;
+			for (int i=0; i<nObserver; i++)
+			{
+				temp=compressLevel_optimized[i];
+				compressLevel_optimized[i]=compressLevel[i];
+				compressLevel[i]=temp;
+			}
+			allocatedSize_optimized=tempSize/tempCompress;
+		}
+		else
+		{
+			for (int i=0; i<nObserver; i++)
+			{
+				compressLevel_optimized[i]=compressLevel[i];
+			}
+			allocatedSize=allocatedSize_optimized=tempSize/tempCompress;
+		}
 	}
 };
 
