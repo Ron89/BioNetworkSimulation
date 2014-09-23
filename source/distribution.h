@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <fstream>
+#include <sstream>
 #include<unistd.h>
 #include<sys/stat.h>
 
@@ -33,18 +34,40 @@ public:
 	long int allocatedSize_optimized;
 	long * observer;
 	bool flag_Exceed;
-//	bool distributionDefined;
+	bool flag_Storage; 	// storage allocated
+
 	bool sampleTaken;
 
 	~distribution()
 	{
-		delete [] observer;
+		delStorage();
 	}
 
-	// class constructor for creation mode
+// storage manipulation
+	void newStorage()
+	{
+		if (flag_Storage) 	delStorage();
+		observer=new long [allocatedSize];
+		flag_Storage=1;
+	}
+	void delStorage()
+	{
+		if (!flag_Storage) 	return;
+		delete [] observer;
+		flag_Storage=0;
+	}
+// add an element into the observer(distribution)
+	inline long insertCounting(int * element_alias)
+	{
+		checkBoundary(element_alias);
+		return observer[IDextraction(element_alias)]++;
+	}
+
+// class constructor for simulation based evaluation
 	distribution(int nObserver_alias, int * observerRange_alias, string & resultFolder_alias)
 	{
 		struct stat sb; 	// check existance of folder
+		flag_Storage=0;
 
 		nObserver=nObserver_alias;
 		for (int i=0; i<nObserver; i++)
@@ -78,10 +101,14 @@ public:
 
 		// allocate memory for the distribution
 		// initialize observer
-		observer=new long [allocatedSize];
+		newStorage();
 		for (long i=0; i<allocatedSize; i++) 	observer[i]=0;
-
 	}
+
+// class constructor for loading from file
+	distribution(int nObserver_alias, int)<++>
+
+// extract ID from element input.
 	long IDextraction(int * element_alias)
 	{
 		long tempID=(element_alias[0]%observerRange[0])/compressLevel[0];
@@ -93,6 +120,7 @@ public:
 		return tempID;
 	}
 
+// read ID from ID_alias, put the output into element_alias
 	void ID2Index(int * element_alias, long ID_alias)
 	{
 		long tempID=ID_alias;
@@ -103,11 +131,8 @@ public:
 			tempID/=(observerRange[i]/compressLevel[i]);
 		}
 	}
-	inline long insertCounting(int * element_alias)
-	{
-		checkBoundary(element_alias);
-		return observer[IDextraction(element_alias)]++;
-	}
+
+// check if the predefined boundary is reached.(before insertCounting)
 	void checkBoundary(int * element_alias)
 	{
 		int tempNum;
@@ -146,6 +171,8 @@ public:
 			}
 		}
 	}
+
+// save the current distribution into file
 	void saveDistribution()
 	{
 		FILE * distFile;
@@ -157,6 +184,10 @@ public:
 		}
 		fclose(distFile);
 	}
+
+// export the distribution in a format of: 	ob1 ob2 ... obn [count]
+	void exportDistribution()
+	
 	
 // initialize storage scheme(used when creating new distribution)
 	void initiateScheme()
@@ -220,6 +251,39 @@ public:
 			}
 			allocatedSize=allocatedSize_optimized=tempSize/tempCompress;
 		}
+	}
+
+// load distribution description from file
+	void loadScheme()
+	{
+		fstream elementDescription;
+		string func_buffer;
+		elementDescription.open((resultFolder+DIST_ELEMENT_DESCRIPTION).c_str(), ios::in);
+		while(getline(elementDescription, func_buffer) && func_buffer[0]!='#')
+		{
+			stringstream ss(func_buffer);
+			ss>>Observer;
+		}
+		while(getline(elementDescription, func_buffer) && func_buffer[0]!='#')
+		{
+			stringstream ss(func_buffer);
+			for (i=0;i<nObserver;i++) 	ss>>observerRange[i];
+		}
+		while(getline(elementDescription, func_buffer) && func_buffer[0]!='#')
+		{
+			stringstream ss(func_buffer);
+			for (i=0;i<nObserver;i++) 	ss>>compressLevel[i];
+		}
+		while(getline(elementDescription, func_buffer) && func_buffer[0]!='#')
+		{
+			stringstream ss(func_buffer);
+			for (i=0;i<nObserver;i++) 
+			{
+				ss>>observerZero[i];
+				observerZero[i]=(observerZero[i]/observerRange[i])*observerRange[i];
+			}
+		}
+		elementDescription.close();
 	}
 };
 
