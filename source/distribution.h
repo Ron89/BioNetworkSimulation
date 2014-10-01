@@ -1,6 +1,7 @@
 #ifndef __DISTRIBUTION_H_INCLUDED__
 #define __DISTRIBUTION_H_INCLUDED__
 #include <algorithm>
+#include <iostream>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -14,6 +15,7 @@
 #define DIST_ELEMENT_DESCRIPTION "/element_description"
 #define DIST_BOUNDARY_DESCRIPTION "/boundary_description"
 #define DIST_COUNTING "/counting"
+#define RESCUE_DISTRIBUTION_NAME "temp_dist"
 #define MAX_VARIABLE 10
 
 using namespace std;
@@ -25,10 +27,12 @@ class distribution
 {
 public:
 	int nObserver;
-	int observerRange[MAX_VARIABLE]; 	// maximum-minimum, with unit interval as 1.
+	int observerRange[MAX_VARIABLE]; 	// expected maximum-minimum, with unit interval as 1.
 	int observerZero[MAX_VARIABLE]; 	// indicate where the zero value is.
-	int highBound[MAX_VARIABLE];
-	int lowBound[MAX_VARIABLE];
+	int highBound[MAX_VARIABLE]; 		// real maximum obtained from data.
+	int lowBound[MAX_VARIABLE]; 		// real minimum obtained from data.
+// * 	highBound and lowBound are either loaded from file, initialized by data or
+// 		manually determined. Thus no additional initialization is required.
 	int compressLevel[MAX_VARIABLE]; 	// a compress level for each observer.
 	int compressLevel_optimized[MAX_VARIABLE]; 	// a compress level for each observer.
 	string resultFolder;
@@ -38,15 +42,15 @@ public:
 	long * observer;
 	bool flag_Exceed;
 
-	bool flag_Storage; 	// storage allocated
-	bool countFile_open;
+	bool flag_Storage; 		// storage allocated
+	bool countFile_open; 	// count file opened
 
 	bool sampleTaken;
 
 	~distribution()
 	{
-		delStorage();
-		unloadDistribution();
+		delStorage(); 			// free the memory used for the storage.
+		unloadDistribution(); 	// unload count file.
 	}
 
 // storage manipulation
@@ -70,6 +74,16 @@ public:
 	}
 
 // constructors
+// create an empty distribution(default constructor)
+	distribution()
+	{
+		// initiate flags;
+		flag_Storage=0;	
+		flag_Exceed=0;
+		countFile_open=0;
+		sampleTaken=0; 	// so that when the first sample is taken, description can be complete
+	}
+
 // class constructor for simulation based evaluation
 	distribution(int nObserver_alias, int * observerRange_alias, string & resultFolder_alias)
 	{
@@ -101,7 +115,7 @@ public:
 // the constructor is loaded. Users may use 
 // 		* pop_element(ID_alias, count_alias)
 // 		* load_distribution()
-// to load the distribution for different purpose
+// to load the distribution for different purpose(no observer array created)
 	distribution(string & resultFolder_alias)
 	{
 		// initiate flags;
@@ -113,9 +127,47 @@ public:
 		resultFolder=resultFolder_alias;
 		openDistribution();
 	}
+
+// assign a distribution with certain scheme.
+	void assign_scheme(int nObserver_alias, int * observerRange_alias, int * observerZero,
+	int * highBound_alias,
+	int * lowBound_alias, int * compressLevel_alias)
+	{
+		nObserver=nObserver_alias;
+		for (int i=0; i<nObserver; i++)
+		{
+			observerRange[i]=observerRange_alias[i];
+			observerZero[i]=observerRange_alias[i];
+			highBound[i]=highBound_alias[i];
+			lowBound[i]=lowBound_alias[i];
+			compressLevel[i]=compressLevel_alias[i];
+		}
+	}
+
+// open distribution for reading and writing.
+// Note: 	write=0 uses void loadScheme() to load saving scheme. And open counting file
+// 			as fstream countFile for future processing.
+// Note: 	so far, only write=0 mode is used. Thus write=1 scheme is not complete. 
+// 			Writing distribution is currently using 
+// 			void saveDistribution() 	save as databulk.
+// 			void exportDistribution() 	export into recognizable file.
+// 				09.30.14
 	void openDistribution(bool write=0)
 	{
-		if(countFile_open) 	countFile.close();
+		if(countFile_open) 	unloadDistribution();
+		if(resultFolder.length()==0)
+		{
+			if (write==1)
+			{
+				cout<<"\n Warning: Undefined distribution name. Rescue name:"<<RESCUE_DISTRIBUTION_NAME<<endl;
+				resultFolder=RESCUE_DISTRIBUTION_NAME;
+			}
+			else
+			{
+				cout<<"\n Error: Undefined distribution name, unable to load. \n";
+				exit(1);
+			}
+		}
 		if(write==0)
 		{
 			loadScheme();
@@ -133,6 +185,26 @@ public:
 		if(countFile_open) 	countFile.close();
 		countFile_open=0;
 		sampleTaken=0; 	
+		initiateScheme(); 	// erase earlier defined scheme when processing model.
+	}
+
+// method of reading counting file(DO NOT read manually.)
+// if file is not open return 1, as well as when EOF is triggered.
+	bool readCounting(long index_readout, long count_readout)
+	{
+		if (countFile_open==1)
+		{
+			countFile>>index_readout;
+			countFile>>count_readout;
+			return countFile.eof();
+		}
+		else return 1;
+	}
+// all flags will be restored to normal, fstream will go to the begining of the file
+	void returnFileBegining()
+	{
+		countFile.clear();
+		countFile.seekg(0, ios::beg); 	// essentially the begining, equivalent to seekg(0);
 	}
 
 // extract ID from element input.
@@ -237,7 +309,7 @@ public:
 	void exportDistribution(string & export_file_name)
 	{
 		int index_temp[MAX_VARIABLE];
-		FILE exportFilePointer();
+		FILE * exportFilePointer;
 
 		exportFilePointer=fopen(export_file_name.c_str(), "w");
 		for (long i=0;i<allocatedSize;i++)
@@ -322,7 +394,7 @@ public:
 // load distribution description from file
 	void loadScheme()
 	{
-		stringstream ss(func_buffer);
+		stringstream ss;
 		fstream elementDescription;
 		string func_buffer;
 		int tempSize=1;
@@ -333,14 +405,14 @@ public:
 		{
 			if(!(getline(elementDescription, func_buffer))) 	exit(1);
 		}
-		while(func_buffer[0]=='#')
+		while(func_buffer[0]=='#');
 		ss<<func_buffer;
 		ss>>nObserver;
 		do
 		{
 			if(!(getline(elementDescription, func_buffer))) 	exit(1);
 		}
-		while(func_buffer[0]=='#')
+		while(func_buffer[0]=='#');
 		ss<<func_buffer;
 		for (int i=0;i<nObserver;i++)
 		{
@@ -351,7 +423,7 @@ public:
 		{
 			if(!(getline(elementDescription, func_buffer))) 	exit(1);
 		}
-		while(func_buffer[0]=='#')
+		while(func_buffer[0]=='#');
 		ss<<func_buffer;
 		for (int i=0;i<nObserver;i++)
 		{
@@ -364,7 +436,7 @@ public:
 			{
 				if(!(getline(elementDescription, func_buffer))) 	exit(1);
 			}
-			while(func_buffer[0]=='#')
+			while(func_buffer[0]=='#');
 			ss<<func_buffer;
 			{
 				ss>>lowBound[i];
