@@ -190,12 +190,12 @@ public:
 
 // method of reading counting file(DO NOT read manually.)
 // if file is not open return 1, as well as when EOF is triggered.
-	bool readCounting(long index_readout, long count_readout)
+	bool readCounting(long * index_readout, long * count_readout)
 	{
 		if (countFile_open==1)
 		{
-			countFile>>index_readout;
-			countFile>>count_readout;
+			countFile>>*index_readout;
+			countFile>>*count_readout;
 			return countFile.eof();
 		}
 		else return 1;
@@ -408,6 +408,8 @@ public:
 		while(func_buffer[0]=='#');
 		ss<<func_buffer;
 		ss>>nObserver;
+		ss.str("");
+		ss.clear();
 		do
 		{
 			if(!(getline(elementDescription, func_buffer))) 	exit(1);
@@ -419,6 +421,8 @@ public:
 			ss>>observerRange[i];
 			tempSize*=observerRange[i];
 		}
+		ss.str("");
+		ss.clear();
 		do
 		{
 			if(!(getline(elementDescription, func_buffer))) 	exit(1);
@@ -430,6 +434,8 @@ public:
 			ss>>compressLevel[i];
 			tempCompress*=compressLevel[i];
 		}
+		ss.str("");
+		ss.clear();
 		for (int i=0;i<nObserver;i++)
 		{
 			do
@@ -442,6 +448,8 @@ public:
 				ss>>lowBound[i];
 				ss>>highBound[i];
 			}
+			ss.str("");
+			ss.clear();
 		}
 		elementDescription.close();
 	// determine baseline with lowBound[i];
