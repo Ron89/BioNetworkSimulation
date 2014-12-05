@@ -91,7 +91,10 @@ public:
 	int reactantUpdate(updRateType * rate);
 	
 // constructor & destructor
-//	coarseGrainedModel()
+	coarseGrainedModel()
+	{
+		initState=0;
+	}
 	coarseGrainedModel(string & modelName);
 	coarseGrainedModel(const coarseGrainedModel<compType, updRateType> & dummy);
 	~coarseGrainedModel();
@@ -160,6 +163,21 @@ reaction & reaction::operator=(const reaction & dummy)
 		return *this;
 	}
 
+// scaling the reaction network. As shown in the document
+// for rate[0]
+//	Type 	[c] 	[t]
+// 	0 		1 		-1
+// 	1 		0 		-1
+// 	2 		-1 		-1
+// 	3 		0 		-1
+// 	4 		0 		-1
+// for rate[1]
+//	Type 	[c] 	[t]
+// 	0 		0 		0
+// 	1 		0 		0
+// 	2 		0 		0
+// 	3 		1 		0
+// 	4 		1 		0
 void reaction::scale(double eta_c_alias, double eta_t_alias)
 	{
 		rate[0]*=pow(eta_c_alias,(code==0?1:(code==2?-1:0)))*pow(eta_t_alias,-1);

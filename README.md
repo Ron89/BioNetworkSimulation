@@ -238,10 +238,10 @@ where each `xxx` represent a value/group of values, either integer or decimal. M
 name | meaning
 --- | ---
 `code`| `int`, used to identify reaction type 
-`rate_0~3`| `float`, store reaction constants. Depending on reaction type,<br> not all 4 of them are necessarily meaningful.
-`dep_0~2` | `int`, store reaction rate dependency on reactants. <br>Each int represents the serial of the respective reactant.<br> Depending on reaction type,<br> not all 3 of them are necessarily meaningful.
+`rate_0~3`| `float`, store reaction constants. Depending on reaction type, not all 4 of them are necessarily meaningful.
+`dep_0~2` | `int`, store reaction rate dependency on reactants. Each int represents the serial of the respective reactant. Depending on reaction type, not all 3 of them are necessarily meaningful.
 `upd_num` | `int` ranged from `0~3`, number of reactants to be updated. 
-`upd_0~2` | `int <tab> double`, store the serial number and number of <br> molecules change by each instance of reaction. <br> Dependingon `upd_num`,<br> not all 3 of them are necessarily meaningful.
+`upd_0~2` | `int <tab> double`, store the serial number and number of  molecules change by each instance of reaction.  Dependingon `upd_num`, not all 3 of them are necessarily meaningful.
 
 
 Though not necessary, 
@@ -297,7 +297,7 @@ in the structure.
 `int dependency[MAXDEPENDENCY]` | reactant dependency of the reaction rate
 `int updateNumber` | number of reactant to be updated 
 `int updateSet[MAXUPDSET]` | the set of reactants to be updated by the reaction
-`double updateOrder[MAXUPDSET]` | `updateOrder[i]` gives the amount of reactant change <br> for reactant `updateSet[i]`.
+`double updateOrder[MAXUPDSET]` | `updateOrder[i]` gives the amount of reactant change  for reactant `updateSet[i]`.
 
 Note: `updateOrder[i], updateOrder[i]` together is the ith instance of `upd_0~2` mentioned
 in section [Reaction network format](#reaction-network-format).
@@ -359,8 +359,8 @@ the data can be written into file whenever needed.
 --- | ---
 `int nComp` | number of reactants in the network.
 `double * time` | time points on the trajectory;
-`compType comp` | storage for number of each reactant at each time point.<br> Format: `comp[t*nComp+i]`.
-`long trajectoryPointer` | writing pointer, indicate the location to write <br> when using `void assign(int, long)` to write new data<br> or how many data values to save when using <br> `void save(string, bool)` to write data to disk.
+`compType comp` | storage for number of each reactant at each time point. Format: `comp[t*nComp+i]`.
+`long trajectoryPointer` | writing pointer, indicate the location to write  when using `void assign(int, long)` to write new data or how many data values to save when using  `void save(string, bool)` to write data to disk.
 
 #### Public function members
 
@@ -595,7 +595,7 @@ be seperated in the future.
 `long long int nOfNewStep` | No. of steps since the last saving point
 `double saveTimeInterval` | the interval of saving points measured by time interval
 `double lastSavedTime` | the time point in which last saving action has taken places.
-`bool saveMethod`| 0=save every `savePointInterval` steps; <br>1=save every saveTimeInterval of time;
+`bool saveMethod`| 0=save every `savePointInterval` steps; 1=save every saveTimeInterval of time;
 `bool noSave` | If noSave signal is 1, no data saving is allowed
 
 #### Public function members
@@ -665,8 +665,8 @@ Note that
 
 Member function name | Requirements
 --- | ---
-`int modelClassName::*rateDetermine_alias(double *)`| supplied by model, using model's own reactant information<br> to calculate the reaction rate for each reaction.<br> The rate will be pass to the algorithm as a double type pointer<br> given as the function argument.
-`int (modelClassName::*reactantUpdate_alias)(const double *)` | supplied by model, algorithm will pass the number(1 or 0)<br>of each reaction taking places <br> during the time interval as a constant double type pointer.<br> The function member will use the array multiplying<br> the updating part of the reaction. Resulting value<br> will be added onto the current reactant amount<br> stored in model.
+`int modelClassName::*rateDetermine_alias(double *)`| supplied by model, using model's own reactant information to calculate the reaction rate for each reaction. The rate will be pass to the algorithm as a double type pointer given as the function argument.
+`int (modelClassName::*reactantUpdate_alias)(const double *)` | supplied by model, algorithm will pass the number(1 or 0)of each reaction taking places  during the time interval as a constant double type pointer. The function member will use the array multiplying the updating part of the reaction. Resulting value will be added onto the current reactant amount stored in model.
 
 #### Public function member
 

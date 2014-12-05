@@ -4,6 +4,9 @@
 #include<cstdlib>
 #include<cmath>
 #include<ctime>
+#include<random> 	// for the use of Mersenne Twister engine. Works only for c++11 or above.
+
+#define SEEDER_DEFAULT 1
 
 using namespace std;
 
@@ -13,12 +16,14 @@ class gillespie
 private:
 // random generator
 //	dsfmt_t dsfmt;
-
+//	mt19937_64 randomMTwister;
 	inline double popRandom()
 	{
 		return drand48();
+//		return double(randomMTwister()-randomMTwister.min())/double(randomMTwister.max()-randomMTwister.min());
 //		return dsfmt_genrand_close_open(&dsfmt);
 //		return randGen.operator();
+//
 	}
 
 // Required parameter 
@@ -36,15 +41,23 @@ public:
 	inline void reseedRandom(int seed)
 	{
 		srand48(seed);
+//		randomMTwister.seed(seed);
 //		randGen.seed(seed);
 //		dsfmt_init_gen_rand(&dsfmt, seed);
 	}
+//	inline void reseedRandom(int seed1, int seed2)
+//	{
+//		seed_seq sseq{seed1, seed2};
+//		randomMTwister.seed(sseq);
+//	}
 
 // algorithm functional parts
 	double iterate(int * comp_alias);
 
 // constructor
-	gillespie(){}
+	gillespie(){
+		reseedRandom(SEEDER_DEFAULT);
+	}
 
 	gillespie(int reactionNumber_alias, int (modelClassName::*rateDetermine_alias)(double *, int *),
 			int (modelClassName::*reactantUpdate_alias)(int *, double *))	
@@ -52,6 +65,11 @@ public:
 		reactionNumber=reactionNumber_alias;
 		rateDetermine=rateDetermine_alias;
 		reactantUpdate=reactantUpdate_alias;
+		reseedRandom(SEEDER_DEFAULT);
+	}
+	void assign(const gillespie<modelClassName> & dummy)
+	{
+		reactionNumber=dummy.reactionNumber;
 	}
 };
 
