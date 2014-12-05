@@ -84,7 +84,7 @@ class reactionNetwork:
 			temp_react[1][0] = rate_alias[0]
 			temp_react[2][0] = self.get_reactant_hash(depend_alias[0])
 			temp_react[2][1] = self.get_reactant_hash(depend_alias[1])
-		elif code_alias==3:
+		elif code_alias==3:	 # order 1 promoting Hill equa
 			temp_react[1][0] = rate_alias[0]
 			temp_react[1][1] = rate_alias[1]
 			temp_react[1][2] = rate_alias[2]
@@ -95,9 +95,28 @@ class reactionNetwork:
 			temp_react[1][1] = rate_alias[1]
 			temp_react[2][0] = self.get_reactant_hash(depend_alias[0])
 			temp_react[2][1] = self.get_reactant_hash(depend_alias[1])
+		elif code_alias==5:   # order 1 inhibitive Hill equa.
+			temp_react[1][0] = rate_alias[0]	# k
+			temp_react[1][1] = rate_alias[1]	# K
+			temp_react[1][2] = rate_alias[2]	# h
+			temp_react[2][0] = self.get_reactant_hash(depend_alias[0]) # P
+			temp_react[2][1] = self.get_reactant_hash(depend_alias[1]) # factor
+		elif code_alias==6:   # inhibitive Hill equa. on MM kinetics
+			temp_react[1][0] = rate_alias[0]	# km
+			temp_react[1][1] = rate_alias[1]	# Km
+			temp_react[1][2] = rate_alias[2]	# Kh
+			temp_react[1][3] = rate_alias[3]	# h
+			temp_react[2][0] = self.get_reactant_hash(depend_alias[0]) # P
+			temp_react[2][1] = self.get_reactant_hash(depend_alias[1]) # factor
+			temp_react[2][2] = self.get_reactant_hash(depend_alias[2]) # substrate
+		elif code_alias==7:   # simplified MM kinetics
+			temp_react[1][0] = rate_alias[0]	# km
+			temp_react[1][1] = rate_alias[1]	# Km
+			temp_react[2][0] = self.get_reactant_hash(depend_alias[0]) # substrate
+		# extend cases here
 		else:
-			#extend cases here
-			print "unknown reaction type, fatal",
+			print "what?!"
+			print "unknown reaction type, fatal"
 			return
 		self.reaction[reaction_index]=copy.deepcopy(temp_react)
 		
@@ -131,7 +150,7 @@ class reactionNetwork:
 				RHS_reactant[self.reaction[i][2][0]]+=1
 				RHS_reactant[self.reaction[i][2][1]]+=1
 			elif self.reaction[i][0]==3:
-				print "Hill equation\t",
+				print "Promotive Hill equation\t",
 				print "k =", self.reaction[i][1][0], "\tK =", self.reaction[i][1][1], "\tH =", self.reaction[i][1][2]
 				print "\t",self.reactant[self.reaction[i][2][0]][0],'+',self.reaction[i][1][2],self.reactant[self.reaction[i][2][1]][0],"<=> [complex] ->",
 				RHS_reactant[self.reaction[i][2][0]]+=1
@@ -142,8 +161,26 @@ class reactionNetwork:
 				print "\t",self.reactant[self.reaction[i][2][0]][0],'+',self.reactant[self.reaction[i][2][1]][0],"<=> [complex] ->",
 				RHS_reactant[self.reaction[i][2][0]]+=1
 				RHS_reactant[self.reaction[i][2][1]]+=1
+			elif self.reaction[i][0]==5:
+				print "Inhibitive Hill equation\t",
+				print "k =", self.reaction[i][1][0], "\tK =", self.reaction[i][1][1], "\tH =", self.reaction[i][1][2]
+				print "\t","[complex] <=>",self.reactant[self.reaction[i][2][0]][0],'+',self.reaction[i][1][2],self.reactant[self.reaction[i][2][1]][0], "->"
+				RHS_reactant[self.reaction[i][2][0]]+=1
+				RHS_reactant[self.reaction[i][2][1]]+=self.reaction[i][1][2]
+			elif self.reaction[i][0]==6:
+				print "Inhibitive Hill equation on MM kinetics\t",
+				print "km =", self.reaction[i][1][0], "\tKm =", self.reaction[i][1][1], "\tKh =", self.reaction[i][1][2], "\tH =", self.reaction[i][1][3]
+				print "\t", self.reactant[self.reaction[i][2][2]][0],"+ [complex] <=>",self.reactant[self.reaction[i][2][2]][0],"+",self.reactant[self.reaction[i][2][0]][0],'+',self.reaction[i][1][3],self.reactant[self.reaction[i][2][1]][0], "->",
+				RHS_reactant[self.reaction[i][2][0]]+=1
+				RHS_reactant[self.reaction[i][2][1]]+=self.reaction[i][1][3]
+				RHS_reactant[self.reaction[i][2][2]]+=1
+			elif self.reaction[i][0]==7:
+				print "Simplified MM kinetics\t",
+				print "v = k[E] =", self.reaction[i][1][0], "\tK =", self.reaction[i][1][1]
+				print "\t",self.reactant[self.reaction[i][2][0]][0],'+ [E] <=> [complex] -> [E] +',
+				RHS_reactant[self.reaction[i][2][0]]+=1
+			# extend cases here
 			else:
-				# extend cases here
 				print "undefined case, fatal"
 				return
 			for j in range(self.reaction[i][3]):
