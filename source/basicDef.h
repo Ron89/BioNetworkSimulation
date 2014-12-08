@@ -62,4 +62,9 @@
 #define REACTIONFILE "reaction"
 #define REACTANTFILE "reactant"
 
+// distribution analysis(due to efficiency concern and
+// memory limitation), used mainly for distribution.h
+// and some related applications
+#define MAX_VARIABLE 10
+
 #endif 	//__BASICDEF_H__

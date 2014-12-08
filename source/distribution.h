@@ -16,7 +16,6 @@
 #define DIST_BOUNDARY_DESCRIPTION "/boundary_description"
 #define DIST_COUNTING "/counting"
 #define RESCUE_DISTRIBUTION_NAME "temp_dist"
-#define MAX_VARIABLE 10
 
 using namespace std;
 
