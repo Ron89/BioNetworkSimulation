@@ -65,7 +65,7 @@ class reactionNetwork:
 			reaction_index=random.randint(10**self.__index_length__,10**(self.__index_length__+1)-1)
 		# generate temporary structure to store reaction
 		temp_react=[code_alias,np.zeros(self.__rate_size__),np.zeros(self.__depend_size__, dtype=int),upd_no_alias,[]]
-		for i in range(upd_no_alias):
+		for i in range(self.__upd_size__):
 			temp_react[-1].append([0,0])
 		if upd_no_alias<=self.__upd_size__:
 			for i in range(upd_no_alias):
@@ -224,8 +224,15 @@ class reactionNetwork:
 		export_file=open(exportName+'/reaction','w')
 		index_temp=0
 		for i in sorted(reaction_export):
-			for j in range(min(reaction_export[i][0],2)):
-				reaction_export[i][2][j]=reactant_export[reaction_export[i][2][j]][-1]
+			if reaction_export[i][0]<=5:
+				for j in range(min(reaction_export[i][0],2)):
+					reaction_export[i][2][j]=reactant_export[reaction_export[i][2][j]][-1]
+			elif reaction_export[i][0]==6:
+				for j in range(3):
+					reaction_export[i][2][j]=reactant_export[reaction_export[i][2][j]][-1]
+			elif reaction_export[i][0]==7:
+				for j in range(1):
+					reaction_export[i][2][j]=reactant_export[reaction_export[i][2][j]][-1]
 			for j in range(reaction_export[i][3]):
 				reaction_export[i][4][j][0]=reactant_export[reaction_export[i][4][j][0]][-1]
 			export_readme.write("%-4d\t"%(index_temp))
