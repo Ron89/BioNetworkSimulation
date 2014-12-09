@@ -257,17 +257,20 @@ int coarseGrainedModel<compType,updRateType>::rateDetermine(double * rate, compT
 				rate[i]=react[i].rate[0]*comp_alias[react[i].dependency[0]]*
 					(pow(react[i].rate[1],react[i].rate[2]))/
 					(pow(react[i].rate[1],react[i].rate[2])+
-					 pow(comp_alias[react[i].dependency[1]],react[i].rate[2]))
+					 pow(comp_alias[react[i].dependency[1]],react[i].rate[2]));
+				break;
 			case 6 :
 				rate[i]=react[i].rate[0]*comp_alias[react[i].dependency[0]]*
 					(pow(react[i].rate[2],react[i].rate[3]))/
 					(pow(react[i].rate[2],react[i].rate[3])+
 					 pow(comp_alias[react[i].dependency[1]],react[i].rate[3]))*
 					comp_alias[react[i].dependency[2]]/
-					(comp_alias[react[i].dependency[2]]+react[i].rate[1])
+					(comp_alias[react[i].dependency[2]]+react[i].rate[1]);
+				break;
 			case 7 :
 				rate[i]=react[i].rate[0]*comp_alias[react[i].dependency[0]]/
 					(comp_alias[react[i].dependency[0]]+react[i].rate[1]);
+				break;
 			default :
 				rate[i]=extendedCases(react[i],comp_alias);
 		}
