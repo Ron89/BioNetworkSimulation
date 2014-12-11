@@ -181,7 +181,8 @@ reaction & reaction::operator=(const reaction & dummy)
 void reaction::scale(double eta_c_alias, double eta_t_alias)
 	{
 		rate[0]*=pow(eta_c_alias,(code==0?1:(code==2?-1:0)))*pow(eta_t_alias,-1);
-		rate[1]*=pow(eta_c_alias,((code==3||code==4)?1:0));
+		rate[1]*=pow(eta_c_alias,((code!=0&&code!=1&&code!=2)?1:0));
+		rate[2]*=pow(eta_c_alias,((code==6)?1:0));
 	}
 
 
