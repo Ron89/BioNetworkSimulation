@@ -251,13 +251,17 @@ In coarse grained model, we describe the reactions into 5 types. Those reaction
 types should be able to describe almost all reactions seen in reaction networks, the 
 following table is the storage format of each reaction type. 
 
-type | `code` | `rate_0~3` | `dep_0~2` | `upd_num` | `upd_0~2`
---- | --- | --- | --- | --- | ---
-`*->..`|0|`k rand rand rand`|`rand rand rand`|`r. spec.` | `r. spec.`
-`A->..`|1|`k rand rand rand`|`A rand rand`|`r. spec.` | `r. spec.`
-`A+B->..`|2|`k rand rand rand`|`A B rand`|`r. spec.` | `r. spec.`
-Hill equa.|3|`k K n rand`|`P factor rand` | `r. spec.` | `r. spec.`
-MM kinetics|4|`k K rand rand`|`S E rand`|`r. spec.` | `r. spec.`
+type                  | `code` | `rate_0~3`         | `dep_0~2`        | `upd_num`  | `upd_0~2`
+---                   | ---    | ---                | ---              | ---        | ---
+`*->..`               | 0      | `k rand rand rand` | `rand rand rand` | `r. spec.` | `r. spec.`
+`A->..`               | 1      | `k rand rand rand` | `A rand rand`    | `r. spec.` | `r. spec.`
+`A+B->..`             | 2      | `k rand rand rand` | `A B rand`       | `r. spec.` | `r. spec.`
+Act. Hill equa. Or. 1 | 3      | `k K n rand`       | `P factor rand`  | `r. spec.` | `r. spec.`
+MM kinetics           | 4      | `k K rand rand`    | `S E rand`       | `r. spec.` | `r. spec.`
+Inh. Hill equa. Or. 1 | 5      | `k K n rand`       | `P factor rand`  | `r. spec.` | `r. spec.`
+Inh. Hill equa. MM K. | 6      | `km Km Kh n`       | `P factor S`     | `r. spec.` | `r. spec.`
+MM kinetics           | 7      | `k K rand rand`    | `S rand rand`    | `r. spec.` | `r. spec.`
+
 
 Note:
 
