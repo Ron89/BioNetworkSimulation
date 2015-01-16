@@ -672,6 +672,13 @@ Member function name | Requirements
 `int modelClassName::*rateDetermine_alias(double *)`| supplied by model, using model's own reactant information to calculate the reaction rate for each reaction. The rate will be pass to the algorithm as a double type pointer given as the function argument.
 `int (modelClassName::*reactantUpdate_alias)(const double *)` | supplied by model, algorithm will pass the number(1 or 0)of each reaction taking places  during the time interval as a constant double type pointer. The function member will use the array multiplying the updating part of the reaction. Resulting value will be added onto the current reactant amount stored in model.
 
+
+#### Public variable members
+
+`type variable_name` | meaning
+--- | ---
+`bool randomAlgorithm` | the random number generator chosen. 1=mt19937, 0=rand48
+
 #### Public function member
 
 ```cpp
@@ -686,15 +693,20 @@ be returned as a double type value.
 
 ```cpp
 gillespie();
-gillespie(int reactionNumber_alias, int (modelClassName::*rateDetermine_alias)(double *),
-		int (modelClassName::*reactantUpdate_alias)(const double *))	
+gillespie(int reactionNumber_alias, int
+			(modelClassName::*rateDetermine_alias)(double *), int
+			(modelClassName::*reactantUpdate_alias)(const double *), bool
+			useMTwister=RDALGORITHM_MT)	
 ```
 
-Default constructor does nothing. Not used in most scenario.
+Default constructor does nothing. Not used in most scenario. 
 
 The second constructor is what is mostly used when loading with Gillespie algorithm,
 reaction number and the two function member pointer introduced earlier must be provided
 when inheriting this algorithm module.
+
+In both cases, `randomAlgorithm` will be set as `RDALGORITHM_MT`, aka, `1`. In the second 
+case, if `rand48` is in any case preferred, over-ride `useMTwister` with value `0`.
 
 
 ### ODEIVPCommon Class Template

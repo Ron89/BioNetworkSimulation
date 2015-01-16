@@ -4,9 +4,10 @@
 #include<cstdlib>
 #include<cmath>
 #include<ctime>
-#include<random> 	// for the use of Mersenne Twister engine. Works only for c++11 or above.
+#include<random> 	// Mersenne Twister engine works only for c++11 or above.
 
-#define SEEDER_DEFAULT 1
+#define RDALGORITHM_MT 1 	// 1 is assigned to MT19937 for rd generator
+#define SEEDER_DEFAULT 10000
 
 using namespace std;
 
@@ -16,11 +17,14 @@ class gillespie
 private:
 // random generator
 //	dsfmt_t dsfmt;
-//	mt19937_64 randomMTwister;
+	mt19937_64 randomMTwister;
 	inline double popRandom()
 	{
-		return drand48();
-//		return double(randomMTwister()-randomMTwister.min())/double(randomMTwister.max()-randomMTwister.min());
+		if (randomAlgorithm==RDALGORITHM_MT)
+			return double(randomMTwister()-randomMTwister.min())/
+				double(randomMTwister.max()-randomMTwister.min());
+		else
+			return drand48();
 //		return dsfmt_genrand_close_open(&dsfmt);
 //		return randGen.operator();
 //
@@ -38,30 +42,38 @@ private:
 public:
 
 // random reseeder
+	bool randomAlgorithm; 		// 1. use MT19937
+								// 0. use rand48
 	inline void reseedRandom(int seed)
 	{
-		srand48(seed);
-//		randomMTwister.seed(seed);
+		if (randomAlgorithm==RDALGORITHM_MT)
+			randomMTwister.seed(seed);
+		else
+			srand48(seed);
 //		randGen.seed(seed);
 //		dsfmt_init_gen_rand(&dsfmt, seed);
 	}
-//	inline void reseedRandom(int seed1, int seed2)
-//	{
-//		seed_seq sseq{seed1, seed2};
-//		randomMTwister.seed(sseq);
-//	}
+	inline void reseedRandom(int seed1, int seed2) 	// used only with MTwister
+	{
+		seed_seq sseq{seed1, seed2};
+		randomMTwister.seed(sseq);
+	}
 
 // algorithm functional parts
 	double iterate(int * comp_alias);
 
 // constructor
 	gillespie(){
+		randomAlgorithm=RDALGORITHM_MT; 
 		reseedRandom(SEEDER_DEFAULT);
 	}
 
-	gillespie(int reactionNumber_alias, int (modelClassName::*rateDetermine_alias)(double *, int *),
-			int (modelClassName::*reactantUpdate_alias)(int *, double *))	
+	gillespie(int reactionNumber_alias, int
+			(modelClassName::*rateDetermine_alias)(double *, int *), int
+			(modelClassName::*reactantUpdate_alias)(int *, double *), bool
+			useMTwister=RDALGORITHM_MT)	
 	{
+		randomAlgorithm=useMTwister; 
 		reactionNumber=reactionNumber_alias;
 		rateDetermine=rateDetermine_alias;
 		reactantUpdate=reactantUpdate_alias;
