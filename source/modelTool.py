@@ -18,8 +18,8 @@ class reactionNetwork:
 	__index_length__=6
 	reactant={}
 	reaction={}
-	reactant_const={}
-	reaction_const={}
+	reactant_const=[]
+	reaction_const=[]
 	
 	def __init__(self):
 		random.seed(time.gmtime())
