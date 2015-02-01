@@ -322,8 +322,9 @@ class reactionNetwork:
 			if i not in self.reaction_const:
 			# dimension determination
 				rate_dimension=np.zeros((2,self.__rate_size__))  # first row: spatial dimention, second row: time dimension
-				rate_dimension[0][0]= (1 if self.reaction[i][0]==0 else (-1 if self.reaction[i][0]==2 else 0))
-				rate_dimension[0][1]= 1 if (self.reaction[i][0]==3 or self.reaction[i][0]==4) else 0
+				rate_dimension[0][0]= (1 if (self.reaction[i][0]==0 or self.reaction[i][0]==7) else (-1 if self.reaction[i][0]==2 else 0))
+				rate_dimension[0][1]= 1 if (self.reaction[i][0]==3 or self.reaction[i][0]==4 or self.reaction[i][0]==5 or self.reaction[i][0]==6 or self.reaction[i][0]==7) else 0
+				rate_dimension[0][2]= 1 if (self.reaction[i][0]==6) else 0
 				rate_dimension[1][0]= -1;
 				# adjust dimension according to constant reactants
 				if self.reaction[i][0]==1:
@@ -337,9 +338,28 @@ class reactionNetwork:
 				if self.reaction[i][0]==3:
 					if self.reaction[i][2][0] in self.reactant_const:
 						rate_dimension[0][0]+=1
+					if self.reaction[i][2][1] in self.reactant_const:
+						rate_dimension[0][1]-=1
 				if self.reaction[i][0]==4:
 					if self.reaction[i][2][1] in self.reactant_const:
 						rate_dimension[0][0]+=1
+					if self.reaction[i][2][0] in self.reactant_const:
+						rate_dimension[0][1]-=1
+				if self.reaction[i][0]==5:
+					if self.reaction[i][2][0] in self.reactant_const:
+						rate_dimension[0][0]+=1
+					if self.reaction[i][2][1] in self.reactant_const:
+						rate_dimension[0][1]-=1
+				if self.reaction[i][0]==6:
+					if self.reaction[i][2][0] in self.reactant_const:
+						rate_dimension[0][0]+=1
+					if self.reaction[i][2][2] in self.reactant_const:
+						rate_dimension[0][1]-=1
+					if self.reaction[i][2][1] in self.reactant_const:
+						rate_dimension[0][2]-=1
+				if self.reaction[i][0]==7:
+					if self.reaction[i][2][0] in self.reactant_const:
+						rate_dimension[0][1]-=1
 				# scale the reaction
 				for j in range(self.__rate_size__):
 					self.reaction[i][1][j]*=eta_c_alias**rate_dimension[0][j]*eta_t_alias**rate_dimension[1][j]
