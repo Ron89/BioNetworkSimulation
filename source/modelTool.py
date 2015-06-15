@@ -295,13 +295,13 @@ class reactionNetwork:
 			self.reaction_const=pickle.load(load_file)
 			load_file.close()
 		else:
-			self.const_reaction={}
+			self.const_reaction=[]
 		if os.path.isfile(modelName+'_dev/reactant_const'):
 			load_file=open(modelName+'_dev/reactant_const','r')
 			self.reactant_const=pickle.load(load_file)
 			load_file.close()
 		else:
-			self.const_reactant={}
+			self.const_reactant=[]
 	# in case the saved file is from previous versions, translate the structure into current standard
 	# * update target: list -> array
 	#	for i in self.reaction:
@@ -393,7 +393,10 @@ class reactionNetwork:
 			for target in knockout_list:
 				self.reactant.pop(target)
 				if target in self.reactant_const:
-					self.reactant_const.pop(target)
+					if type(self.reactant_const)==dict:
+						self.reactant_const.pop(target)
+					elif type(self.reactant_const)==dict:
+						self.reactant_const.remove(target)
 
 	def duplicate_reaction(self, duplicate_target):
 		"""
