@@ -261,6 +261,7 @@ MM kinetics           | 4      | `k K rand rand`    | `S E rand`       | `r. spe
 Inh. Hill equa. Or. 1 | 5      | `k K n rand`       | `P factor rand`  | `r. spec.` | `r. spec.`
 Inh. Hill equa. MM K. | 6      | `km Km Kh n`       | `P factor S`     | `r. spec.` | `r. spec.`
 MM kinetics           | 7      | `k K rand rand`    | `S rand rand`    | `r. spec.` | `r. spec.`
+`A+B+C->..`           | 8      | `k rand rand rand` | `A B C`       | `r. spec.` | `r. spec.`
 
 
 Note:

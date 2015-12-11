@@ -163,6 +163,7 @@ reaction & reaction::operator=(const reaction & dummy)
 		return *this;
 	}
 
+// OUTDATED!!! Don't use any more!!!
 // scaling the reaction network. As shown in the document
 // for rate[0]
 //	Type 	[c] 	[t]
@@ -271,6 +272,11 @@ int coarseGrainedModel<compType,updRateType>::rateDetermine(double * rate, compT
 			case 7 :
 				rate[i]=react[i].rate[0]*comp_alias[react[i].dependency[0]]/
 					(comp_alias[react[i].dependency[0]]+react[i].rate[1]);
+				break;
+			case 8 :
+				rate[i]=react[i].rate[0]*comp_alias[react[i].dependency[0]]*
+					comp_alias[react[i].dependency[1]]*
+					comp_alias[react[i].dependency[2]];
 				break;
 			default :
 				rate[i]=extendedCases(react[i],comp_alias);

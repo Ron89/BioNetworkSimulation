@@ -113,7 +113,12 @@ class reactionNetwork:
 			temp_react[1][0] = rate_alias[0]	# km
 			temp_react[1][1] = rate_alias[1]	# Km
 			temp_react[2][0] = self.get_reactant_hash(depend_alias[0]) # substrate
+		elif code_alias==8:   # order-3 reaction
 		# extend cases here
+			temp_react[1][0] = rate_alias[0]
+			temp_react[2][0] = self.get_reactant_hash(depend_alias[0])
+			temp_react[2][1] = self.get_reactant_hash(depend_alias[1])
+			temp_react[2][2] = self.get_reactant_hash(depend_alias[2])
 		else:
 			print "what?!"
 			print "unknown reaction type, fatal"
@@ -179,6 +184,13 @@ class reactionNetwork:
 				print "v = k[E] =", self.reaction[i][1][0], "\tK =", self.reaction[i][1][1]
 				print "\t",self.reactant[self.reaction[i][2][0]][0],'+ [E] <=> [complex] -> [E] +',
 				RHS_reactant[self.reaction[i][2][0]]+=1
+			elif self.reaction[i][0]==8:
+				print "order-3\t",
+				print "k =", self.reaction[i][1][0]
+				print "\t",self.reactant[self.reaction[i][2][0]][0],'+',self.reactant[self.reaction[i][2][1]][0],'+',self.reactant[self.reaction[i][2][2]][0],"->",
+				RHS_reactant[self.reaction[i][2][0]]+=1
+				RHS_reactant[self.reaction[i][2][1]]+=1
+				RHS_reactant[self.reaction[i][2][2]]+=1
 			# extend cases here
 			else:
 				print "undefined case, fatal"
@@ -232,6 +244,9 @@ class reactionNetwork:
 					reaction_export[i][2][j]=reactant_export[reaction_export[i][2][j]][-1]
 			elif reaction_export[i][0]==7:
 				for j in range(1):
+					reaction_export[i][2][j]=reactant_export[reaction_export[i][2][j]][-1]
+			elif reactant_export[i][0]==8:
+				for j in range(reaction_export[i][0]):
 					reaction_export[i][2][j]=reactant_export[reaction_export[i][2][j]][-1]
 			for j in range(reaction_export[i][3]):
 				reaction_export[i][4][j][0]=reactant_export[reaction_export[i][4][j][0]][-1]
@@ -322,7 +337,7 @@ class reactionNetwork:
 			if i not in self.reaction_const:
 			# dimension determination
 				rate_dimension=np.zeros((2,self.__rate_size__))  # first row: spatial dimention, second row: time dimension
-				rate_dimension[0][0]= (1 if (self.reaction[i][0]==0 or self.reaction[i][0]==7) else (-1 if self.reaction[i][0]==2 else 0))
+				rate_dimension[0][0]= (1 if (self.reaction[i][0]==0 or self.reaction[i][0]==7) else (-1 if self.reaction[i][0]==2 else (-2 if self.reaction[i][0]==8 else 0)))
 				rate_dimension[0][1]= 1 if (self.reaction[i][0]==3 or self.reaction[i][0]==4 or self.reaction[i][0]==5 or self.reaction[i][0]==6 or self.reaction[i][0]==7) else 0
 				rate_dimension[0][2]= 1 if (self.reaction[i][0]==6) else 0
 				rate_dimension[1][0]= -1;
@@ -360,6 +375,13 @@ class reactionNetwork:
 				if self.reaction[i][0]==7:
 					if self.reaction[i][2][0] in self.reactant_const:
 						rate_dimension[0][1]-=1
+				if self.reaction[i][0]==8:
+					if self.reaction[i][2][0] in self.reactant_const:
+						rate_dimension[0][0]+=1
+					if self.reaction[i][2][1] in self.reactant_const:
+						rate_dimension[0][0]+=1
+					if self.reaction[i][2][2] in self.reactant_const:
+						rate_dimension[0][0]+=1
 				# scale the reaction
 				for j in range(self.__rate_size__):
 					self.reaction[i][1][j]*=eta_c_alias**rate_dimension[0][j]*eta_t_alias**rate_dimension[1][j]
