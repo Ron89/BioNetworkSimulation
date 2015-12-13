@@ -245,8 +245,8 @@ class reactionNetwork:
 			elif reaction_export[i][0]==7:
 				for j in range(1):
 					reaction_export[i][2][j]=reactant_export[reaction_export[i][2][j]][-1]
-			elif reactant_export[i][0]==8:
-				for j in range(reaction_export[i][0]):
+			elif reaction_export[i][0]==8:
+				for j in range(3):
 					reaction_export[i][2][j]=reactant_export[reaction_export[i][2][j]][-1]
 			for j in range(reaction_export[i][3]):
 				reaction_export[i][4][j][0]=reactant_export[reaction_export[i][4][j][0]][-1]
