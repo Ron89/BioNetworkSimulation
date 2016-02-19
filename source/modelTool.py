@@ -8,6 +8,7 @@ import time
 import os
 import pickle
 
+
 class reactionNetwork:
 	"""
 	This module is built to systematically create/modify biochemical networks.
@@ -129,7 +130,7 @@ class reactionNetwork:
 		"""
 		list all/part of the reactions in the network
 		"""
-		if list_target==None:
+		if list_target is None:
 			list_target=self.reaction
 
 		print "format:\n index: reaction type\t reaction rate \n reaction\t reaction rate constants\n"
@@ -211,6 +212,7 @@ class reactionNetwork:
 			if tempMarker==0:
 				print 'Nul.',
 			print "\n"
+
 	def export(self,exportName):
 		"""
 		export the network into a format(folder with reactant, reaction, readme 
@@ -340,7 +342,7 @@ class reactionNetwork:
 				rate_dimension[0][0]= (1 if (self.reaction[i][0]==0 or self.reaction[i][0]==7) else (-1 if self.reaction[i][0]==2 else (-2 if self.reaction[i][0]==8 else 0)))
 				rate_dimension[0][1]= 1 if (self.reaction[i][0]==3 or self.reaction[i][0]==4 or self.reaction[i][0]==5 or self.reaction[i][0]==6 or self.reaction[i][0]==7) else 0
 				rate_dimension[0][2]= 1 if (self.reaction[i][0]==6) else 0
-				rate_dimension[1][0]= -1;
+				rate_dimension[1][0]= -1
 				# adjust dimension according to constant reactants
 				if self.reaction[i][0]==1:
 					if self.reaction[i][2][0] in self.reactant_const:
@@ -392,7 +394,7 @@ class reactionNetwork:
 		* all manual hashing should be changed in future versions.
 		"""
 		knockout_reaction_list=set()
-		action_confirmed=1;
+		action_confirmed=1
 		for target in knockout_list:
 			for affectTest in self.reaction:
 				if (target in self.reaction[affectTest][2]) or (target in np.array(self.reaction[affectTest][-1])):
@@ -429,4 +431,4 @@ class reactionNetwork:
 		while reaction_index in self.reaction:
 			reaction_index=random.randint(10**self.__index_length__,10**(self.__index_length__+1)-1)
 		self.reaction[reaction_index]=copy.deepcopy(self.reaction[duplicate_target])
-		return reaction_index;
+		return reaction_index
